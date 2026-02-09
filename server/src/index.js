@@ -23,18 +23,11 @@ app.use(helmet());
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:4000',
-  'https://laboratoire-frontend.onrender.com',
-  'https://laboratoire-backend.onrender.com'
+  'https://rmha1-0.onrender.com'  // ← URL frontend
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true
 }));
 
