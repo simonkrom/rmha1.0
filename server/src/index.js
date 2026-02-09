@@ -143,7 +143,12 @@ app.get('*', (req, res, next) => {
 
 (async () => {
   try {
-    await runMigrations();
+    if (process.env.DATABASE_URL) {
+      await runMigrations();
+    } else {
+      console.warn('No DATABASE_URL set; skipping migrations');
+    }
+
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
