@@ -1,0 +1,32 @@
+/* Simple toast styles */
+#toast-container {
+  position: fixed;
+  right: 16px;
+  top: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 360px;
+}
+.toast {
+  background: #111827;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  font-size: 0.95rem;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast.success { background: linear-gradient(90deg,#059669,#10b981); }
+.toast.error { background: linear-gradient(90deg,#ef4444,#f97316); }
+.toast.info { background: linear-gradient(90deg,#2563eb,#3b82f6); }
+.toast.warning { background: linear-gradient(90deg,#f59e0b,#f97316); }
+.toast .title { font-weight: 700; margin-bottom: 4px; }
+.toast .msg { font-weight: 500; }

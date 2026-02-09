@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conciergerie Médicale Le Havre d'Anine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563EB;
+            --primary-dark: #1D4ED8;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --light: #F9FAFB;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light-gray: #E5E7EB;
+            --white: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            background: url('../assets/images/background.png') center/cover fixed no-repeat, var(--white);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .logo-img {
+            height: 48px;
+            width: auto;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .logo-img {
+                height: 40px;
+            }
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .logo-text span {
+            color: var(--secondary);
+        }
+
+        .nav-desktop {
+            display: none;
+        }
+
+        .nav-desktop ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        .nav-desktop a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-desktop a:hover {
+            color: var(--primary);
+        }
+
+        .nav-desktop a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            left: 0;
+            bottom: -5px;
+            transition: width 0.3s;
+        }
+
+        .nav-desktop a:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            height: 100vh;
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            z-index: 1001;
+            transition: left 0.3s ease;
+            padding: 20px;
+        }
+
+        .mobile-menu.active {
+            left: 0;
+        }
+
+        .mobile-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .mobile-menu ul {
+            list-style: none;
+        }
+
+        .mobile-menu li {
+            margin-bottom: 20px;
+        }
+
+        .mobile-menu a {
+            text-decoration: none;
+            color: var(--dark);
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .mobile-menu-overlay.active {
+            display: block;
+        }
+
+        /* Login Modal */
+        .login-modal { position: fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:2000; }
+        .login-modal.active { display:flex; }
+        .login-modal-overlay { position: absolute; inset:0; background: rgba(0,0,0,0.6); }
+        .login-modal-card { position:relative; background:var(--white); padding:20px; border-radius:8px; width:320px; max-width:90%; box-shadow:var(--shadow); z-index:2001; }
+        .login-modal-close { position:absolute; top:8px; right:10px; background:none; border:none; font-size:1.2rem; cursor:pointer; }
+        .login-modal input, .login-modal select { width:100%; padding:8px 10px; margin-top:6px; border:1px solid var(--light-gray); border-radius:6px; }
+        .login-modal label { font-size:0.9rem; margin-top:8px; display:block; color:var(--dark); }
+
+        .mobile-menu-overlay.active {
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.8)), url('./images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            color: var(--white);
+            padding: 80px 0;
+            text-align: center;
+        }
+        .hero {
+            background: linear-gradient(rgba(37, 99, 235, 0.9), rgba(37, 99, 235, 0.8)), url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: var(--white);
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-family: 'Stencil', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .hero-button {
+            background-color: var(--white);
+            color: var(--primary);
+            border: none;
+            padding: 12px 25px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .hero-button.secondary {
+            background-color: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+        }
+
+        .hero-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Services Section */
+        .services {
+            padding: 80px 0;
+            background-color: var(--light);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+            font-family: 'Forte', sans-serif;
+            font-size: 2rem;
+            color: var(--dark);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 70px;
+            height: 4px;
+            background-color: var(--primary);
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .service-card {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .pro-icon {
+            margin-right: 8px;
+            font-size: 1rem;
+            vertical-align: middle;
+            color: var(--primary);
+        }
+
+        .service-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .service-card p {
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        .service-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .service-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Process Section */
+        .process {
+            padding: 80px 0;
+        }
+
+        .process-steps {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .process-step {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .step-number {
+            background-color: var(--primary);
+            color: var(--white);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex-grow: 1;
+        }
+
+        .step-content h3 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 80px 0;
+            background-color: var(--light);
+        }
+
+        .testimonial-slider {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .testimonial {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            display: none;
+        }
+
+        .testimonial.active {
+            display: block;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .testimonial-location {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .slider-dot.active {
+            background-color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: var(--white);
+            padding: 50px 0 20px;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-info h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--white);
+        }
+
+        .footer-info p {
+            color: var(--light-gray);
+            margin-bottom: 10px;
+        }
+
+        .footer-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-icon {
+            color: var(--secondary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--light-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .menu-toggle {
+                display: none;
+            }
+
+            .nav-desktop {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 3rem;
+            }
+
+            .services-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .process-steps {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            .process-step {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+                max-width: 200px;
+            }
+
+            .footer-content {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="../assets/images/Havre_Anine.png" alt="Le Havre d'Anine" class="logo-img">
+                    <div class="logo-text">Conciergerie <span>Médicale</span></div>
+                </div>
+                
+                <nav class="nav-desktop">
+                    <ul>
+                        <li><a href="#accueil">Accueil</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#process">Comment ça marche</a></li>
+                        <li><a href="#testimonials">Témoignages</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </nav>
+                
+                <button id="loginBtn" class="cta-button" style="background:transparent;color:var(--primary);border:1px solid var(--primary);margin-right:10px">Se connecter</button>
+                <button id="logoutBtn" class="cta-button" style="display:none;background:transparent;color:#ef4444;border:1px solid #ef4444;margin-right:10px">Se déconnecter</button>
+                <a href="enregistrement.html" class="cta-button">S'enregistrer</a>
+                
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal" aria-hidden="true">
+        <div class="login-modal-overlay" id="loginModalOverlay"></div>
+        <div class="login-modal-card">
+            <button class="login-modal-close" id="loginClose">&times;</button>
+            <h2 id="loginModalTitle">Connexion</h2>
+            <form id="loginForm">
+                <label for="role">Rôle</label>
+                <select id="role" required>
+                    <option value="admin">Administrateur</option>
+                    <option value="coursier">Coursier</option>
+                    <option value="manager">Manager</option>
+                    <option value="pharmacien">Pharmacien</option>
+                </select>
+                <label for="username">Nom d'utilisateur</label>
+                <input id="username" type="text" required>
+                <label for="password">Mot de passe</label>
+                <input id="password" type="password" required>
+                <div class="login-error" id="loginError" style="display:none;color:red;margin-top:8px"></div>
+                <button type="submit" class="cta-button" style="margin-top:10px">Se connecter</button>
+            </form>
+            <p style="margin-top:10px;font-size:0.9rem;color:var(--gray)">Pour tester : manager/manager123, coursier/coursier123, pharmacien/pharmacien123</p>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <div class="logo">
+                <img src="../assets/images/Havre_Anine.png" alt="Le Havre d'Anine" class="logo-img">
+                <div class="logo-text">Conciergerie <span>Médicale</span></div>
+            </div>
+            <button class="menu-toggle" id="closeMenu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <ul>
+            <li><a href="#accueil" class="mobile-nav-link">Accueil</a></li>
+            <li><a href="#services" class="mobile-nav-link">Services</a></li>
+            <li><a href="#process" class="mobile-nav-link">Comment ça marche</a></li>
+            <li><a href="#testimonials" class="mobile-nav-link">Témoignages</a></li>
+            <li><a href="#contact" class="mobile-nav-link">Contact</a></li>
+            <li><a href="#" onclick="openRoleModal('manager'); return false;" class="mobile-nav-link"><i class="fas fa-user-tie pro-icon" aria-hidden="true"></i>Manager</a></li>
+            <li><a href="#" onclick="openRoleModal('coursier'); return false;" class="mobile-nav-link"><i class="fas fa-motorcycle pro-icon" aria-hidden="true"></i>Coursier</a></li>
+            <li><a href="#" onclick="openRoleModal('pharmacien'); return false;" class="mobile-nav-link"><i class="fas fa-prescription-bottle-alt pro-icon" aria-hidden="true"></i>Pharmacien</a></li>
+            <li style="padding-top:6px;border-top:1px solid var(--light-gray);margin-top:6px"><span style="display:block;color:var(--gray);padding:6px 0">Accès direct :</span></li>
+            <li><a href="manager-login.html" class="mobile-nav-link"><i class="fas fa-user-tie pro-icon" aria-hidden="true"></i>Manager (page)</a></li>
+            <li><a href="coursier-login.html" class="mobile-nav-link"><i class="fas fa-motorcycle pro-icon" aria-hidden="true"></i>Coursier (page)</a></li>
+            <li><a href="pharmacien-login.html" class="mobile-nav-link"><i class="fas fa-prescription-bottle-alt pro-icon" aria-hidden="true"></i>Pharmacien (page)</a></li>
+            <li><a href="admin-login.html" class="mobile-nav-link"><i class="fas fa-user-shield pro-icon" aria-hidden="true"></i>Administrateur (page)</a></li>
+            <li><a href="#" id="mobileLoginLink" class="mobile-nav-link">Espace Pro</a></li>
+            <li><a href="enregistrement.html" class="mobile-nav-link cta-button">S'enregistrer</a></li>
+        </ul>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero fade-in" id="accueil">
+        <div class="container">
+            <h1>Votre santé, notre priorité</h1>
+            <p>Service médical 24h/24 dans tout le Gabon. Laboratoire de Proximité, Pharmacie de Proximité et Assistance médicale à portée de main.</p>
+            <div class="hero-buttons">
+                <a href="enregistrement.html" class="hero-button">S'enregistrer maintenant</a>
+                <a href="#services" class="hero-button secondary">Découvrir nos services</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services fade-in" id="services">
+        <div class="container">
+            <h2 class="section-title">Nos Services</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <i class="fas fa-flask service-icon"></i>
+                    <h3>Laboratoire de Proximité</h3>
+                    <p>Examens biologiques avec résultats rapides. Prise en charge assurance disponible.</p>
+                    <a href="laboratoire.html" class="service-link">Voir les examens <i class="fas fa-arrow-right"></i></a>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-pills service-icon"></i>
+                    <h3>Pharmacie de Proximité</h3>
+                    <p>Livraison de médicaments sur ordonnance à votre domicile ou à votre lieu de travail en moins d'1h.</p>
+                    <a href="pharmacie.html" class="service-link">Scanner ordonnance <i class="fas fa-arrow-right"></i></a>
+                </div>
+                
+                <div class="service-card">
+                    <i class="fas fa-ambulance service-icon"></i>
+                    <h3>Assistance Médicale</h3>
+                    <p>Intervention rapide de professionnels de santé pour vos urgences médicales.</p>
+                    <a href="assistance.html" class="service-link">Demander aide <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section class="process fade-in" id="process">
+        <div class="container">
+            <h2 class="section-title">Comment ça marche ?</h2>
+            <div class="process-steps">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Enregistrement</h3>
+                        <p>Créez votre profil patient en quelques minutes</p>
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Commande</h3>
+                        <p>Sélectionnez vos examens ou scannez votre ordonnance</p>
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Paiement</h3>
+                        <p>Payez facilement via Mobile Money avec prise en charge assurance</p>
+                    </div>
+                </div>
+                
+                <div class="process-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Livraison</h3>
+                        <p>Recevez vos résultats ou médicaments à domicile en 1-2 heures</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials fade-in" id="testimonials">
+        <div class="container">
+            <h2 class="section-title">Témoignages</h2>
+            <div class="testimonial-slider">
+                <div class="testimonial active">
+                    <p class="testimonial-text">"Service excellent et rapide. J'ai reçu mes résultats d'analyses en moins de 2 heures. Je recommande vivement !"</p>
+                    <p class="testimonial-author">Marie Okouma</p>
+                    <p class="testimonial-location">Libreville, Gabon</p>
+                </div>
+                
+                <div class="testimonial">
+                    <p class="testimonial-text">"En tant que personne âgée, aller à la pharmacie était difficile. Maintenant mes médicaments viennent à moi. Merci !"</p>
+                    <p class="testimonial-author">Pierre Mba</p>
+                    <p class="testimonial-location">Port-Gentil, Gabon</p>
+                </div>
+                
+                <div class="testimonial">
+                    <p class="testimonial-text">"La prise en charge par mon assurance a été fluide. J'ai économisé 80% sur mes examens. Service impeccable."</p>
+                    <p class="testimonial-author">Sophie Ndong</p>
+                    <p class="testimonial-location">Franceville, Gabon</p>
+                </div>
+                
+                <div class="slider-dots">
+                    <span class="slider-dot active" data-slide="0"></span>
+                    <span class="slider-dot" data-slide="1"></span>
+                    <span class="slider-dot" data-slide="2"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Professional login links -->
+    <section class="services fade-in" id="prologins" style="background:transparent;padding-top:40px;padding-bottom:40px">
+        <div class="container">
+            <h2 class="section-title">Espace Professionnels</h2>
+            <div style="display:flex;gap:12px;justify-content:center;margin-top:18px">
+                <button class="hero-button" type="button" onclick="openRoleModal('manager')"><i class="fas fa-user-tie pro-icon" aria-hidden="true"></i>Manager</button>
+                <button class="hero-button" type="button" onclick="openRoleModal('coursier')"><i class="fas fa-motorcycle pro-icon" aria-hidden="true"></i>Coursier</button>
+                <button class="hero-button" type="button" onclick="openRoleModal('pharmacien')"><i class="fas fa-prescription-bottle-alt pro-icon" aria-hidden="true"></i>Pharmacien</button>
+            </div>
+            <div style="text-align:center;margin-top:8px;font-size:0.92rem;color:var(--gray)">
+                Ou accéder directement aux pages :
+                <a href="manager-login.html"><i class="fas fa-user-tie pro-icon" aria-hidden="true"></i>Manager</a> ·
+                <a href="coursier-login.html"><i class="fas fa-motorcycle pro-icon" aria-hidden="true"></i>Coursier</a> ·
+                <a href="pharmacien-login.html"><i class="fas fa-prescription-bottle-alt pro-icon" aria-hidden="true"></i>Pharmacien</a> ·
+                <a href="admin-login.html"><i class="fas fa-user-shield pro-icon" aria-hidden="true"></i>Administrateur</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="fade-in" id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <h3>Conciergerie Médicale Le Havre d'Anine</h3>
+                    <p>Votre partenaire santé au Gabon</p>
+                    <p>Service disponible 24h/24, 7j/7</p>
+                </div>
+                
+                <div class="footer-contact">
+                    <div class="contact-item">
+                        <i class="fas fa-phone contact-icon"></i>
+                        <span>+241 62 60 89 22</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope contact-icon"></i>
+                        <span>lehavredanine@gmail.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt contact-icon"></i>
+                        <span>Libreville, Gabon</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2026 Conciergerie Médicale Le Havre d'Anine. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu functionality
+        const menuToggle = document.getElementById('menuToggle');
+        const closeMenu = document.getElementById('closeMenu');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.add('active');
+            mobileMenuOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        closeMenu.addEventListener('click', closeMobileMenu);
+        mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+
+        function closeMobileMenu() {
+            mobileMenu.classList.remove('active');
+            mobileMenuOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Testimonial slider
+        const testimonials = document.querySelectorAll('.testimonial');
+        const dots = document.querySelectorAll('.slider-dot');
+        let currentSlide = 0;
+
+        function showSlide(n) {
+            testimonials.forEach(testimonial => {
+                testimonial.classList.remove('active');
+            });
+            
+            dots.forEach(dot => {
+                dot.classList.remove('active');
+            });
+            
+            testimonials[n].classList.add('active');
+            dots[n].classList.add('active');
+            currentSlide = n;
+        }
+
+        dots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                const slideIndex = parseInt(this.getAttribute('data-slide'));
+                showSlide(slideIndex);
+            });
+        });
+
+        // Auto-rotate testimonials
+        function nextSlide() {
+            let next = currentSlide + 1;
+            if (next >= testimonials.length) {
+                next = 0;
+            }
+            showSlide(next);
+        }
+
+        setInterval(nextSlide, 5000);
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                if (this.getAttribute('href') === '#') return;
+                
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#accueil') {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                    return;
+                }
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Initialize with first testimonial shown
+        showSlide(0);
+    </script>
+
+    <script src="../assets/js/auth.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function(){ authInit(); });</script>
+</body>
+</html>

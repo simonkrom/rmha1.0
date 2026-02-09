@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Coursier - Conciergerie Médicale</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="../assets/css/toast.css" />
+    <style>
+        :root {
+            --primary: #F59E0B;
+            --primary-dark: #D97706;
+            --secondary: #10B981;
+            --accent: #3B82F6;
+            --danger: #EF4444;
+            --light: #F9FAFB;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light-gray: #E5E7EB;
+            --white: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            background: url('../assets/images/background.png') center/cover fixed no-repeat, #F3F4F6;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .logo-img {
+            height: 48px;
+            width: auto;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .logo-img {
+                height: 40px;
+            }
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .logo-text span {
+            color: var(--secondary);
+        }
+
+        .courier-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .courier-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background-color: var(--secondary);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background-color: var(--gray);
+        }
+
+        .status-toggle {
+            background-color: var(--light);
+            border: 2px solid var(--light-gray);
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .status-toggle.online {
+            background-color: var(--secondary);
+            color: var(--white);
+            border-color: var(--secondary);
+        }
+
+        .status-toggle.offline {
+            background-color: #FEE2E2;
+            color: var(--danger);
+            border-color: #FEE2E2;
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--danger);
+            color: var(--white);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .logout-btn {
+            background-color: var(--light);
+            color: var(--dark);
+            border: none;
+            padding: 8px 20px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--light-gray);
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            padding: 30px 0;
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: 30px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .welcome-text h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .welcome-text p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .todays-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Orders Sections */
+        .orders-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            background-color: var(--light);
+            border: none;
+            border-radius: var(--radius);
+            color: var(--dark);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background-color: var(--light-gray);
+        }
+
+        .action-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .action-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Orders List */
+        .orders-list {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .order-card {
+            background-color: var(--white);
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .order-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .order-card.selected {
+            border-color: var(--primary);
+            background-color: rgba(245, 158, 11, 0.05);
+        }
+
+        .order-card.urgent {
+            border-left: 4px solid var(--danger);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .order-id {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .order-type {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .order-type.lab {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+        }
+
+        .order-type.pharmacy {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+
+        .order-type.assistance {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .order-time {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-icon {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .order-priority {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background-color: var(--light);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+        }
+
+        .priority-high {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .priority-normal {
+            color: var(--accent);
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .accept-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .accept-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .accept-btn:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+        }
+
+        .select-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            background-color: var(--white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .select-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .select-btn.selected {
+            background-color: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        /* Scanner Section */
+        .scanner-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            position: sticky;
+            top: 100px;
+        }
+
+        .scanner-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scanner-container {
+            text-align: center;
+            padding: 30px 20px;
+            border: 3px dashed var(--light-gray);
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .scanner-container:hover {
+            border-color: var(--primary);
+            background-color: rgba(245, 158, 11, 0.05);
+        }
+
+        .scanner-icon {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .manual-input {
+            margin-top: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .validate-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .validate-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .validate-btn:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+        }
+
+        /* Current Delivery */
+        .current-delivery {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .delivery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .timer-container {
+            text-align: center;
+            background-color: var(--light);
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+        }
+
+        .timer-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .timer {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer.warning {
+            color: var(--danger);
+            animation: pulse 1s infinite;
+        }
+
+        .delivery-info {
+            background-color: var(--light);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .info-value {
+            color: var(--gray);
+        }
+
+        .delivery-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .delivery-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .delivery-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .delivery-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .delivery-btn.secondary {
+            background-color: var(--light);
+            color: var(--dark);
+        }
+
+        .delivery-btn.secondary:hover {
+            background-color: var(--light-gray);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            border-radius: var(--radius);
+            background-color: var(--light);
+        }
+
+        .stat-box .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-box .label {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+            color: var(--primary);
+        }
+
+        /* Map Section */
+        .map-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+            height: 400px;
+            overflow: hidden;
+        }
+
+        #deliveryMap {
+            width: 100%;
+            height: 350px;
+            border-radius: var(--radius);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .modal-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(245, 158, 11, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <script src="../assets/js/auth.js"></script>
+    <script>authRequireRole('coursier', {usernameId:'sessionUser', logoutId:'logoutBtn'});</script>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <img src="../assets/images/Havre_Anine.png" alt="Le Havre d'Anine" class="logo-img">
+                    <div class="logo-text">Coursier <span>Médical</span></div>
+                </a>
+                
+                <div class="courier-info">
+                    <div class="courier-status">
+                        <div class="status-indicator">
+                            <div class="status-dot offline" id="statusDot"></div>
+                            <span id="statusText">Hors ligne</span>
+                        </div>
+                        <button class="status-toggle offline" id="statusToggle">
+                            <i class="fas fa-power-off"></i>
+                            Se connecter
+                        </button>
+                    </div>
+                    <div class="session-actions" style="display:flex;align-items:center;gap:10px;margin-left:15px">
+                        <span style="color:var(--gray)">Connecté : <strong id="sessionUser"></strong></span>
+                        <button id="logoutBtn" class="cta-button" style="background:transparent;color:#ef4444;border:1px solid #ef4444">Se déconnecter</button>
+                    </div>
+                    </div>
+                    
+                    <div class="notifications">
+                        <i class="fas fa-bell" style="font-size: 1.3rem; color: var(--gray);"></i>
+                        <span class="notification-badge" id="notificationCount">3</span>
+                    </div>
+                    
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner fade-in">
+            <div class="welcome-text">
+                <h1>Bonjour, <span id="courierName">Kévin Mba</span> !</h1>
+                <p>Prêt pour une nouvelle journée de livraisons ?</p>
+            </div>
+            <div class="todays-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="todayDeliveries">0</div>
+                    <div class="stat-label">Livraisons aujourd'hui</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="todayEarnings">0 CFA</div>
+                    <div class="stat-label">Gains journaliers</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="currentRating">4.8</div>
+                    <div class="stat-label">Note moyenne</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <!-- Left Column: Orders and Map -->
+            <div>
+                <!-- Available Orders -->
+                <div class="orders-section fade-in">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-clipboard-list"></i>
+                            Commandes disponibles
+                        </h2>
+                        <div class="section-actions">
+                            <button class="action-btn" onclick="refreshOrders()">
+                                <i class="fas fa-sync"></i>
+                                Actualiser
+                            </button>
+                            <button class="action-btn primary" onclick="acceptAllSelected()" id="acceptAllBtn" disabled>
+                                <i class="fas fa-check-double"></i>
+                                Accepter la sélection
+                            </button>
+                        </div>
+                    </div>
+                    <div class="orders-list" id="availableOrdersList">
+                        <!-- Available orders will be populated by JavaScript -->
+                        <div class="order-card urgent">
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-id">CMD-124</div>
+                                    <div class="order-type lab">Laboratoire</div>
+                                    <div class="order-time">Il y a 15 minutes</div>
+                                </div>
+                                <div class="order-priority">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <span class="priority-high">URGENT - 2h max</span>
+                                </div>
+                            </div>
+                            <div class="order-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-user detail-icon"></i>
+                                    <span>Jean Dupont</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt detail-icon"></i>
+                                    <span>3.2 km</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-money-bill-wave detail-icon"></i>
+                                    <span>10,600 CFA</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-clock detail-icon"></i>
+                                    <span>Livraison rapide</span>
+                                </div>
+                            </div>
+                            <div class="order-actions">
+                                <button class="select-btn" data-order="CMD-124">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="accept-btn" data-order="CMD-124">
+                                    <i class="fas fa-check-circle"></i>
+                                    Accepter cette livraison
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div>
+                                    <div class="order-id">CMD-126</div>
+                                    <div class="order-type pharmacy">Pharmacie</div>
+                                    <div class="order-time">Il y a 25 minutes</div>
+                                </div>
+                                <div class="order-priority">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="priority-normal">1h max</span>
+                                </div>
+                            </div>
+                            <div class="order-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-user detail-icon"></i>
+                                    <span>Marie Okouma</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt detail-icon"></i>
+                                    <span>5.8 km</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-money-bill-wave detail-icon"></i>
+                                    <span>8,400 CFA</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-clock detail-icon"></i>
+                                    <span>Ordinaire</span>
+                                </div>
+                            </div>
+                            <div class="order-actions">
+                                <button class="select-btn" data-order="CMD-126">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="accept-btn" data-order="CMD-126">
+                                    <i class="fas fa-check-circle"></i>
+                                    Accepter cette livraison
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Map -->
+                <div class="map-section fade-in">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-map-marked-alt"></i>
+                            Carte des livraisons
+                        </h2>
+                        <div class="section-actions">
+                            <button class="action-btn" onclick="centerMap()">
+                                <i class="fas fa-crosshairs"></i>
+                                Centrer sur moi
+                            </button>
+                        </div>
+                    </div>
+                    <div id="deliveryMap"></div>
+                </div>
+
+                <!-- Current Delivery (Initially hidden) -->
+                <div class="current-delivery hidden" id="currentDeliverySection">
+                    <div class="delivery-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-shipping-fast"></i>
+                            Livraison en cours
+                        </h2>
+                        <button class="action-btn" onclick="cancelDelivery()" id="cancelBtn">
+                            <i class="fas fa-times"></i>
+                            Annuler
+                        </button>
+                    </div>
+
+                    <div class="timer-container">
+                        <div class="timer-label">Temps restant</div>
+                        <div class="timer" id="deliveryTimer">02:00:00</div>
+                    </div>
+
+                    <div class="delivery-info">
+                        <div class="info-row">
+                            <span class="info-label">Commande:</span>
+                            <span class="info-value" id="currentOrderId">CMD-124</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Patient:</span>
+                            <span class="info-value" id="currentPatient">Jean Dupont</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Adresse:</span>
+                            <span class="info-value" id="currentAddress">Rue du Commerce, Libreville</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Téléphone:</span>
+                            <span class="info-value" id="currentPhone">+241 01 23 45 67</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Type:</span>
+                            <span class="info-value" id="currentType">Laboratoire</span>
+                        </div>
+                    </div>
+
+                    <div class="delivery-actions">
+                        <button class="delivery-btn secondary" onclick="callCustomer()">
+                            <i class="fas fa-phone"></i>
+                            Appeler le client
+                        </button>
+                        <button class="delivery-btn primary" onclick="completeDelivery()">
+                            <i class="fas fa-check-circle"></i>
+                            Livraison effectuée
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Scanner and Stats -->
+            <div>
+                <!-- QR Code Scanner -->
+                <div class="scanner-section fade-in">
+                    <h2 class="scanner-title">
+                        <i class="fas fa-qrcode"></i>
+                        Scanner QR Code
+                    </h2>
+                    <div class="scanner-container" onclick="startScanner()">
+                        <i class="fas fa-camera scanner-icon"></i>
+                        <h3>Scanner le QR Code</h3>
+                        <p>Cliquez pour activer la caméra et scanner le QR code de la commande</p>
+                    </div>
+
+                    <div class="manual-input">
+                        <div class="input-group">
+                            <label class="input-label">Ou saisir le code manuellement:</label>
+                            <input type="text" class="input-field" id="manualCode" placeholder="Ex: CMD-124-ABC123">
+                        </div>
+                        <button class="validate-btn" id="validateBtn" onclick="validateManualCode()" disabled>
+                            <i class="fas fa-check"></i>
+                            Valider le code
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Today's Statistics -->
+                <div class="stats-section fade-in">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        Statistiques du jour
+                    </h2>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="value" id="completedDeliveries">0</div>
+                            <div class="label">Livraisons terminées</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="totalEarnings">0 CFA</div>
+                            <div class="label">Total gains</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="averageTime">--:--</div>
+                            <div class="label">Temps moyen</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="value" id="successRate">100%</div>
+                            <div class="label">Taux de réussite</div>
+                        </div>
+                    </div>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span style="margin-left: 5px; color: var(--dark);">4.8/5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div class="modal" id="scannerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-qrcode"></i>
+                    Scanner QR Code
+                </h2>
+                <button class="close-modal" onclick="closeScanner()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="scannerView" style="width: 100%; height: 300px; background-color: #333; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 20px;">
+                    <div style="text-align: center;">
+                        <i class="fas fa-camera" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <p>Caméra en attente d'activation</p>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <p style="color: var(--gray); margin-bottom: 15px;">
+                        Positionnez le QR code dans le cadre pour le scanner
+                    </p>
+                    <button class="action-btn primary" onclick="simulateScan()">
+                        <i class="fas fa-bolt"></i>
+                        Simulation de scan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Started Modal -->
+    <div class="modal" id="deliveryStartedModal">
+        <div class="modal-content">
+            <div style="text-align: center;">
+                <i class="fas fa-check-circle" style="font-size: 4rem; color: var(--secondary); margin-bottom: 20px;"></i>
+                <h2 class="modal-title">Livraison démarrée !</h2>
+                <p class="modal-message" id="deliveryMessage">La livraison a été démarrée avec succès. Vous avez 2 heures maximum.</p>
+                <div class="timer" style="font-size: 2.5rem; margin: 20px 0;">02:00:00</div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('deliveryStartedModal')">
+                    Fermer
+                </button>
+                <button class="modal-btn primary" onclick="viewDeliveryDetails()">
+                    <i class="fas fa-info-circle"></i>
+                    Voir les détails
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Completed Modal -->
+    <div class="modal" id="deliveryCompletedModal">
+        <div class="modal-content">
+            <div style="text-align: center;">
+                <i class="fas fa-trophy" style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h2 class="modal-title">Livraison terminée !</h2>
+                <p class="modal-message">Félicitations ! Vous avez effectué la livraison avec succès.</p>
+                <div style="background-color: var(--light); padding: 20px; border-radius: var(--radius); margin: 20px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Temps écoulé:</span>
+                        <span id="deliveryTimeTaken">01:45:23</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Gain pour cette livraison:</span>
+                        <span style="font-weight: 700; color: var(--primary);" id="deliveryEarnings">2,500 CFA</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Total gains aujourd'hui:</span>
+                        <span style="font-weight: 700;" id="totalEarningsNow">12,500 CFA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn primary" onclick="closeModal('deliveryCompletedModal')">
+                    <i class="fas fa-check"></i>
+                    Continuer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal" id="loadingModal">
+        <div class="modal-content" style="text-align: center;">
+            <div style="margin: 20px 0;">
+                <div class="spinner" style="margin: 0 auto; width: 50px; height: 50px; border-width: 5px;"></div>
+            </div>
+            <h2 class="modal-title" id="loadingTitle">Chargement...</h2>
+            <p id="loadingMessage">Veuillez patienter</p>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Sample data
+        const availableOrders = [
+            {
+                id: "CMD-124",
+                type: "laboratoire",
+                typeText: "Laboratoire",
+                patient: "Jean Dupont",
+                address: "Rue du Commerce, Libreville",
+                phone: "+241 01 23 45 67",
+                distance: "3.2 km",
+                amount: "10,600 CFA",
+                time: "Il y a 15 minutes",
+                priority: "high",
+                timeLimit: 120, // 2 hours in minutes
+                earnings: 2500,
+                lat: 0.4162,
+                lng: 9.4673
+            },
+            {
+                id: "CMD-126",
+                type: "pharmacy",
+                typeText: "Pharmacie",
+                patient: "Marie Okouma",
+                address: "Avenue du Colonel, Libreville",
+                phone: "+241 04 56 78 90",
+                distance: "5.8 km",
+                amount: "8,400 CFA",
+                time: "Il y a 25 minutes",
+                priority: "normal",
+                timeLimit: 60, // 1 hour in minutes
+                earnings: 1800,
+                lat: 0.4200,
+                lng: 9.4700
+            },
+            {
+                id: "CMD-128",
+                type: "laboratoire",
+                typeText: "Laboratoire",
+                patient: "Pierre Mba",
+                address: "Quartier Glass, Libreville",
+                phone: "+241 05 67 89 01",
+                distance: "4.5 km",
+                amount: "12,500 CFA",
+                time: "Il y a 35 minutes",
+                priority: "normal",
+                timeLimit: 120,
+                earnings: 2200,
+                lat: 0.4150,
+                lng: 9.4650
+            },
+            {
+                id: "CMD-130",
+                type: "assistance",
+                typeText: "Assistance",
+                patient: "Sophie Ndong",
+                address: "Port-Gentil Centre",
+                phone: "+241 07 89 12 34",
+                distance: "12.3 km",
+                amount: "15,000 CFA",
+                time: "Il y a 50 minutes",
+                priority: "high",
+                timeLimit: 90,
+                earnings: 3500,
+                lat: 0.4300,
+                lng: 9.4800
+            }
+        ];
+
+        // Global variables
+        let map = null;
+        let currentDelivery = null;
+        let selectedOrders = [];
+        let isOnline = false;
+        let courierData = {
+            name: "Kévin Mba",
+            phone: "+241 06 12 34 56",
+            email: "k.mba@conciergerie.ga",
+            rating: 4.8,
+            totalDeliveries: 156,
+            totalEarnings: "1,250,000 CFA",
+            todayStats: {
+                deliveries: 0,
+                earnings: 0,
+                completed: 0,
+                averageTime: "00:00",
+                successRate: "100%"
+            },
+            currentLocation: {
+                lat: 0.4162,
+                lng: 9.4673
+            }
+        };
+
+        // Delivery timer
+        let deliveryTimer = null;
+        let timeLeft = 0;
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCourier();
+            initializeMap();
+            populateAvailableOrders();
+            setupEventListeners();
+            updateStats();
+        });
+
+        // Initialize courier data
+        function initializeCourier() {
+            document.getElementById('courierName').textContent = courierData.name;
+            updateStatusUI();
+        }
+
+        // Initialize map
+        function initializeMap() {
+            map = L.map('deliveryMap').setView([courierData.currentLocation.lat, courierData.currentLocation.lng], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Add courier marker
+            L.marker([courierData.currentLocation.lat, courierData.currentLocation.lng], {
+                icon: L.divIcon({
+                    html: `<div style="background-color: var(--primary); width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem;"><i class="fas fa-motorcycle"></i></div>`,
+                    iconSize: [25, 25],
+                    className: 'courier-marker'
+                })
+            })
+            .bindPopup("Vous êtes ici")
+            .addTo(map);
+            
+            // Add order markers
+            availableOrders.forEach(order => {
+                const iconColor = order.priority === 'high' ? 'var(--danger)' : 'var(--accent)';
+                
+                L.marker([order.lat, order.lng], {
+                    icon: L.divIcon({
+                        html: `<div style="background-color: ${iconColor}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+                        iconSize: [20, 20],
+                        className: 'order-marker'
+                    })
+                })
+                .bindPopup(`<strong>${order.id}</strong><br>${order.patient}<br>${order.distance}`)
+                .addTo(map);
+            });
+        }
+
+        // Populate available orders
+        function populateAvailableOrders() {
+            const ordersList = document.getElementById('availableOrdersList');
+            
+            availableOrders.forEach(order => {
+                // Check if order card already exists
+                if (!document.querySelector(`[data-order="${order.id}"]`)) {
+                    const orderCard = document.createElement('div');
+                    orderCard.className = `order-card ${order.priority === 'high' ? 'urgent' : ''}`;
+                    orderCard.innerHTML = `
+                        <div class="order-header">
+                            <div>
+                                <div class="order-id">${order.id}</div>
+                                <div class="order-type ${order.type}">${order.typeText}</div>
+                                <div class="order-time">${order.time}</div>
+                            </div>
+                            <div class="order-priority">
+                                <i class="fas ${order.priority === 'high' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+                                <span class="${order.priority === 'high' ? 'priority-high' : 'priority-normal'}">
+                                    ${order.priority === 'high' ? 'URGENT' : 'Normal'} - ${order.timeLimit} min max
+                                </span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="detail-item">
+                                <i class="fas fa-user detail-icon"></i>
+                                <span>${order.patient}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt detail-icon"></i>
+                                <span>${order.distance}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-money-bill-wave detail-icon"></i>
+                                <span>${order.amount}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-clock detail-icon"></i>
+                                <span>${order.timeLimit} min max</span>
+                            </div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="select-btn" data-order="${order.id}">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="accept-btn" data-order="${order.id}">
+                                <i class="fas fa-check-circle"></i>
+                                Accepter cette livraison
+                            </button>
+                        </div>
+                    `;
+                    ordersList.appendChild(orderCard);
+                }
+            });
+            
+            // Add event listeners to new buttons
+            addOrderEventListeners();
+        }
+
+        // Add event listeners to order buttons
+        function addOrderEventListeners() {
+            // Select buttons
+            document.querySelectorAll('.select-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const orderId = this.dataset.order;
+                    toggleOrderSelection(orderId, this);
+                });
+            });
+            
+            // Accept buttons
+            document.querySelectorAll('.accept-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const orderId = this.dataset.order;
+                    acceptSingleOrder(orderId);
+                });
+            });
+            
+            // Manual code input
+            document.getElementById('manualCode').addEventListener('input', function() {
+                const validateBtn = document.getElementById('validateBtn');
+                validateBtn.disabled = this.value.trim() === '';
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Status toggle
+            document.getElementById('statusToggle').addEventListener('click', toggleStatus);
+            
+            // Map center button
+            document.querySelector('button[onclick="centerMap()"]').addEventListener('click', centerMap);
+            
+            // Accept all selected button
+            document.getElementById('acceptAllBtn').addEventListener('click', acceptAllSelected);
+            
+            // Manual code validation on Enter key
+            document.getElementById('manualCode').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    validateManualCode();
+                }
+            });
+        }
+
+        // Toggle online/offline status
+        function toggleStatus() {
+            isOnline = !isOnline;
+            updateStatusUI();
+            
+            if (isOnline) {
+                showNotification("Vous êtes maintenant en ligne", "success");
+                // Start checking for new orders periodically
+                startOrderPolling();
+            } else {
+                showNotification("Vous êtes maintenant hors ligne", "warning");
+                // Stop order polling
+                stopOrderPolling();
+            }
+        }
+
+        // Update status UI
+        function updateStatusUI() {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const statusToggle = document.getElementById('statusToggle');
+            
+            if (isOnline) {
+                statusDot.className = 'status-dot online';
+                statusText.textContent = 'En ligne';
+                statusToggle.className = 'status-toggle online';
+                statusToggle.innerHTML = '<i class="fas fa-power-off"></i> Se déconnecter';
+                
+                // Enable order acceptance
+                document.querySelectorAll('.accept-btn').forEach(btn => {
+                    btn.disabled = false;
+                });
+                document.getElementById('validateBtn').disabled = document.getElementById('manualCode').value.trim() === '';
+                
+            } else {
+                statusDot.className = 'status-dot offline';
+                statusText.textContent = 'Hors ligne';
+                statusToggle.className = 'status-toggle offline';
+                statusToggle.innerHTML = '<i class="fas fa-power-off"></i> Se connecter';
+                
+                // Disable order acceptance
+                document.querySelectorAll('.accept-btn').forEach(btn => {
+                    btn.disabled = true;
+                });
+                document.getElementById('validateBtn').disabled = true;
+            }
+        }
+
+        // Toggle order selection
+        function toggleOrderSelection(orderId, button) {
+            const index = selectedOrders.indexOf(orderId);
+            
+            if (index === -1) {
+                // Add to selection
+                selectedOrders.push(orderId);
+                button.classList.add('selected');
+                button.parentElement.parentElement.classList.add('selected');
+            } else {
+                // Remove from selection
+                selectedOrders.splice(index, 1);
+                button.classList.remove('selected');
+                button.parentElement.parentElement.classList.remove('selected');
+            }
+            
+            // Update accept all button
+            const acceptAllBtn = document.getElementById('acceptAllBtn');
+            acceptAllBtn.disabled = selectedOrders.length === 0;
+        }
+
+        // Accept single order
+        function acceptSingleOrder(orderId) {
+            if (!isOnline) {
+                showNotification("Vous devez être en ligne pour accepter des livraisons", "error");
+                return;
+            }
+            
+            selectedOrders = [orderId];
+            acceptSelectedOrders();
+        }
+
+        // Accept all selected orders
+        function acceptAllSelected() {
+            if (!isOnline) {
+                showNotification("Vous devez être en ligne pour accepter des livraisons", "error");
+                return;
+            }
+            
+            if (selectedOrders.length === 0) {
+                showNotification("Veuillez sélectionner au moins une commande", "warning");
+                return;
+            }
+            
+            acceptSelectedOrders();
+        }
+
+        // Accept selected orders
+        function acceptSelectedOrders() {
+            // For now, we'll just accept the first order (simplified)
+            const orderId = selectedOrders[0];
+            const order = availableOrders.find(o => o.id === orderId);
+            
+            if (!order) {
+                showNotification("Commande introuvable", "error");
+                return;
+            }
+            
+            // Show QR scanner
+            showScannerModal(order);
+        }
+
+        // Show scanner modal
+        function showScannerModal(order) {
+            // Store current order for scanning
+            currentDelivery = order;
+            
+            showModal('scannerModal');
+        }
+
+        // Start scanner
+        function startScanner() {
+            // In a real app, this would activate the camera
+            // For this demo, we'll show a simulation
+            const scannerView = document.getElementById('scannerView');
+            scannerView.innerHTML = `
+                <div style="text-align: center; width: 100%;">
+                    <div style="width: 250px; height: 250px; margin: 0 auto; border: 2px solid var(--primary); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                            <div style="font-size: 5rem; color: var(--primary);">📱</div>
+                            <div style="margin-top: 10px; font-weight: 600;">${currentDelivery.id}</div>
+                        </div>
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px dashed var(--primary); animation: scanLine 2s linear infinite;"></div>
+                    </div>
+                    <p style="margin-top: 15px; color: white;">Simulation de scan en cours...</p>
+                </div>
+            `;
+            
+            // Add scan animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes scanLine {
+                    0% { top: -100%; }
+                    100% { top: 100%; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Auto-scan after 3 seconds for demo
+            setTimeout(simulateScan, 3000);
+        }
+
+        // Simulate QR code scan
+        function simulateScan() {
+            closeScanner();
+            
+            // Start the delivery
+            startDelivery(currentDelivery);
+        }
+
+        // Start delivery
+        function startDelivery(order) {
+            // Remove order from available list
+            const orderIndex = availableOrders.findIndex(o => o.id === order.id);
+            if (orderIndex !== -1) {
+                availableOrders.splice(orderIndex, 1);
+            }
+            
+            // Remove order from UI
+            const orderCard = document.querySelector(`[data-order="${order.id}"]`);
+            if (orderCard) {
+                orderCard.parentElement.remove();
+            }
+            
+            // Clear selections
+            selectedOrders = [];
+            document.getElementById('acceptAllBtn').disabled = true;
+            
+            // Update current delivery section
+            document.getElementById('currentOrderId').textContent = order.id;
+            document.getElementById('currentPatient').textContent = order.patient;
+            document.getElementById('currentAddress').textContent = order.address;
+            document.getElementById('currentPhone').textContent = order.phone;
+            document.getElementById('currentType').textContent = order.typeText;
+            
+            // Show current delivery section
+            document.getElementById('currentDeliverySection').classList.remove('hidden');
+            
+            // Start timer
+            startDeliveryTimer(order.timeLimit * 60); // Convert minutes to seconds
+            
+            // Show success modal
+            showDeliveryStartedModal(order);
+            
+            // Update today's stats
+            courierData.todayStats.deliveries++;
+            updateStats();
+            
+            // Update map with delivery route
+            updateMapWithDelivery(order);
+        }
+
+        // Start delivery timer
+        function startDeliveryTimer(totalSeconds) {
+            timeLeft = totalSeconds;
+            updateTimerDisplay();
+            
+            deliveryTimer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(deliveryTimer);
+                    showNotification("Temps écoulé ! La livraison est en retard.", "error");
+                    document.getElementById('deliveryTimer').classList.add('warning');
+                } else if (timeLeft <= 300) { // 5 minutes warning
+                    document.getElementById('deliveryTimer').classList.add('warning');
+                }
+            }, 1000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const hours = Math.floor(timeLeft / 3600);
+            const minutes = Math.floor((timeLeft % 3600) / 60);
+            const seconds = timeLeft % 60;
+            
+            const timerElement = document.getElementById('deliveryTimer');
+            timerElement.textContent = 
+                `${hours.toString().padStart(2, '0')}:` +
+                `${minutes.toString().padStart(2, '0')}:` +
+                `${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Update map with delivery
+        function updateMapWithDelivery(order) {
+            // Clear existing markers except courier
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker && !layer._icon.classList.contains('courier-marker')) {
+                    map.removeLayer(layer);
+                }
+            });
+            
+            // Add delivery destination marker
+            L.marker([order.lat, order.lng], {
+                icon: L.divIcon({
+                    html: `<div style="background-color: var(--secondary); width: 25px; height: 25px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem;"><i class="fas fa-map-marker-alt"></i></div>`,
+                    iconSize: [25, 25],
+                    className: 'destination-marker'
+                })
+            })
+            .bindPopup(`<strong>Destination:</strong><br>${order.patient}<br>${order.address}`)
+            .addTo(map);
+            
+            // Add route line (simulated)
+            L.polyline([
+                [courierData.currentLocation.lat, courierData.currentLocation.lng],
+                [order.lat, order.lng]
+            ], {
+                color: 'var(--primary)',
+                weight: 3,
+                opacity: 0.7,
+                dashArray: '10, 10'
+            }).addTo(map);
+            
+            // Fit bounds to show both points
+            map.fitBounds([
+                [courierData.currentLocation.lat, courierData.currentLocation.lng],
+                [order.lat, order.lng]
+            ]);
+        }
+
+        // Complete delivery
+        function completeDelivery() {
+            if (!currentDelivery) return;
+            
+            // Calculate delivery time
+            const deliveryTime = (currentDelivery.timeLimit * 60) - timeLeft;
+            const hours = Math.floor(deliveryTime / 3600);
+            const minutes = Math.floor((deliveryTime % 3600) / 60);
+            const seconds = deliveryTime % 60;
+            const timeTaken = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update stats
+            courierData.todayStats.completed++;
+            courierData.todayStats.earnings += currentDelivery.earnings;
+            
+            // Calculate average time
+            if (courierData.todayStats.completed > 0) {
+                const totalSeconds = (courierData.todayStats.completed - 1) * 3600 + deliveryTime; // Simplified calculation
+                const avgHours = Math.floor(totalSeconds / 3600 / courierData.todayStats.completed);
+                const avgMinutes = Math.floor((totalSeconds / 60 / courierData.todayStats.completed) % 60);
+                courierData.todayStats.averageTime = `${avgHours.toString().padStart(2, '0')}:${avgMinutes.toString().padStart(2, '0')}`;
+            }
+            
+            // Stop timer
+            clearInterval(deliveryTimer);
+            
+            // Update delivery completed modal
+            document.getElementById('deliveryTimeTaken').textContent = timeTaken;
+            document.getElementById('deliveryEarnings').textContent = `${currentDelivery.earnings.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('totalEarningsNow').textContent = `${courierData.todayStats.earnings.toLocaleString('fr-FR')} CFA`;
+            
+            // Show completion modal
+            showModal('deliveryCompletedModal');
+            
+            // Hide current delivery section
+            document.getElementById('currentDeliverySection').classList.add('hidden');
+            
+            // Update stats display
+            updateStats();
+            
+            // Clear current delivery
+            currentDelivery = null;
+            
+            // Reset map
+            setTimeout(() => {
+                initializeMap();
+                populateAvailableOrders();
+            }, 1000);
+        }
+
+        // Cancel delivery
+        function cancelDelivery() {
+            if (!currentDelivery || !confirm("Êtes-vous sûr de vouloir annuler cette livraison ?")) {
+                return;
+            }
+            
+            // Stop timer
+            clearInterval(deliveryTimer);
+            
+            // Add order back to available list
+            availableOrders.push(currentDelivery);
+            
+            // Hide current delivery section
+            document.getElementById('currentDeliverySection').classList.add('hidden');
+            
+            // Update stats (negative impact)
+            courierData.todayStats.successRate = "95%";
+            
+            // Clear current delivery
+            currentDelivery = null;
+            
+            // Refresh available orders
+            populateAvailableOrders();
+            updateStats();
+            
+            // Reset map
+            initializeMap();
+            
+            showNotification("Livraison annulée", "warning");
+        }
+
+        // Call customer
+        function callCustomer() {
+            if (!currentDelivery) return;
+            
+            // In a real app, this would initiate a phone call
+            showToast(`Appel en cours vers ${currentDelivery.phone}...`, 'info');
+        }
+
+        // Validate manual code
+        function validateManualCode() {
+            const manualCode = document.getElementById('manualCode').value.trim();
+            
+            if (!manualCode) {
+                showNotification("Veuillez saisir un code", "warning");
+                return;
+            }
+            
+            // Find order by ID (simplified check)
+            const order = availableOrders.find(o => manualCode.includes(o.id));
+            
+            if (!order) {
+                showNotification("Code invalide. Veuillez vérifier et réessayer.", "error");
+                return;
+            }
+            
+            // Start delivery with this order
+            currentDelivery = order;
+            simulateScan();
+            
+            // Clear input
+            document.getElementById('manualCode').value = '';
+            document.getElementById('validateBtn').disabled = true;
+        }
+
+        // Refresh orders
+        function refreshOrders() {
+            if (!isOnline) {
+                showNotification("Vous devez être en ligne pour rafraîchir les commandes", "warning");
+                return;
+            }
+            
+            showLoading("Recherche de nouvelles commandes...");
+            
+            // Simulate API call
+            setTimeout(() => {
+                hideLoading();
+                
+                // Add some simulated new orders
+                const newOrder = {
+                    id: `CMD-${Date.now().toString().slice(-6)}`,
+                    type: "pharmacy",
+                    typeText: "Pharmacie",
+                    patient: "Nouveau Patient",
+                    address: "Nouvelle Adresse, Libreville",
+                    phone: "+241 00 00 00 00",
+                    distance: "2.1 km",
+                    amount: "7,500 CFA",
+                    time: "À l'instant",
+                    priority: "normal",
+                    timeLimit: 60,
+                    earnings: 1500,
+                    lat: 0.4180,
+                    lng: 9.4690
+                };
+                
+                availableOrders.push(newOrder);
+                populateAvailableOrders();
+                
+                showNotification("1 nouvelle commande disponible", "success");
+            }, 1500);
+        }
+
+        // Center map on courier location
+        function centerMap() {
+            map.setView([courierData.currentLocation.lat, courierData.currentLocation.lng], 13);
+        }
+
+        // Update statistics display
+        function updateStats() {
+            document.getElementById('todayDeliveries').textContent = courierData.todayStats.deliveries;
+            document.getElementById('todayEarnings').textContent = `${courierData.todayStats.earnings.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('currentRating').textContent = courierData.rating;
+            document.getElementById('completedDeliveries').textContent = courierData.todayStats.completed;
+            document.getElementById('totalEarnings').textContent = `${courierData.todayStats.earnings.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('averageTime').textContent = courierData.todayStats.averageTime;
+            document.getElementById('successRate').textContent = courierData.todayStats.successRate;
+        }
+
+        // Show delivery started modal
+        function showDeliveryStartedModal(order) {
+            document.getElementById('deliveryMessage').textContent = 
+                `Livraison ${order.id} démarrée. Vous avez ${order.timeLimit} minutes maximum.`;
+            showModal('deliveryStartedModal');
+        }
+
+        // View delivery details
+        function viewDeliveryDetails() {
+            closeModal('deliveryStartedModal');
+            // Scroll to current delivery section
+            document.getElementById('currentDeliverySection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Show notification
+        function showNotification(message, type = "info") {
+            // Update notification badge
+            const badge = document.getElementById('notificationCount');
+            const count = parseInt(badge.textContent) + 1;
+            badge.textContent = count;
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: ${type === 'error' ? '#FEE2E2' : type === 'warning' ? '#FEF3C7' : '#D1FAE5'};
+                color: ${type === 'error' ? '#991B1B' : type === 'warning' ? '#92400E' : '#065F46'};
+                padding: 15px 20px;
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                z-index: 1001;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            const icon = type === 'error' ? 'fa-exclamation-circle' : 
+                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            
+            notification.innerHTML = `
+                <i class="fas ${icon}" style="font-size: 1.2rem;"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 5000);
+            
+            // Add animation styles
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Start order polling
+        function startOrderPolling() {
+            // In a real app, this would be setInterval with API calls
+            console.log("Order polling started");
+        }
+
+        // Stop order polling
+        function stopOrderPolling() {
+            console.log("Order polling stopped");
+        }
+
+        // Show modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close scanner
+        function closeScanner() {
+            closeModal('scannerModal');
+        }
+
+        // Show loading
+        function showLoading(message = "Chargement...") {
+            document.getElementById('loadingTitle').textContent = message;
+            document.getElementById('loadingModal').classList.add('active');
+        }
+
+        // Hide loading
+        function hideLoading() {
+            document.getElementById('loadingModal').classList.remove('active');
+        }
+
+        // Logout
+        function logout() {
+            if (confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
+                showLoading("Déconnexion en cours...");
+                setTimeout(() => {
+                    hideLoading();
+                    showToast("Déconnexion réussie", 'success');
+                    // In a real app, you would redirect to login page
+                    window.location.href = 'index.html';
+                }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>
+<script src="/socket.io/socket.io.js"></script>
+<script src="../assets/js/toast.js"></script>
+<script>
+    (function(){
+        try {
+            const socket = io();
+            socket.emit('join','coursier');
+
+            const ordersList = document.querySelector('.orders-list');
+            function renderOrderCard(order) {
+                const card = document.createElement('div');
+                card.className = 'order-card';
+                card.dataset.orderId = order.orderId || order.patientId || '';
+
+                const header = document.createElement('div');
+                header.className = 'order-header';
+                header.innerHTML = `<div><div class="order-id">${card.dataset.orderId}</div><div class="order-time">${new Date(order.timestamp || Date.now()).toLocaleString()}</div></div>`;
+
+                const details = document.createElement('div');
+                details.className = 'order-details';
+                details.innerHTML = `
+                    <div class="detail-item"><i class="fas fa-user detail-icon"></i> ${order.patient ? (order.patient.firstName + ' ' + order.patient.lastName) : 'N/A'}</div>
+                    <div class="detail-item"><i class="fas fa-phone detail-icon"></i> ${order.patient ? order.patient.phone : ''}</div>
+                `;
+
+                const actions = document.createElement('div');
+                actions.style.display = 'flex';
+                actions.style.gap = '10px';
+
+                const validateBtn = document.createElement('button');
+                validateBtn.className = 'action-btn primary';
+                validateBtn.textContent = 'Valider';
+                validateBtn.onclick = () => {
+                    const payload = { orderId: card.dataset.orderId, validatedBy: 'coursier', timestamp: new Date().toISOString() };
+                    socket.emit('orderValidated', payload);
+                    validateBtn.disabled = true;
+                    validateBtn.textContent = 'Validé';
+                };
+
+                actions.appendChild(validateBtn);
+
+                card.appendChild(header);
+                card.appendChild(details);
+                card.appendChild(actions);
+
+                ordersList.prepend(card);
+            }
+
+            socket.on('newOrder', order => {
+                console.log('coursier newOrder', order);
+                if (ordersList) renderOrderCard(order);
+                showToast(`Nouvelle commande: ${order.orderId || order.patientId || ''}`, 'info');
+            });
+
+            socket.on('orderValidated', data => {
+                console.log('orderValidated', data);
+                // mark corresponding card as validated
+                const card = document.querySelector(`.order-card[data-order-id="${data.orderId}"]`);
+                if (card) {
+                    card.style.opacity = '0.6';
+                    const btn = card.querySelector('button');
+                    if (btn) { btn.disabled = true; btn.textContent = 'Validé'; }
+                }
+                showToast(`Commande validée: ${data.orderId || ''}`, 'success');
+            });
+      
+            // GPS tracking: watch position and emit to server for manager tracking
+            const courierId = sessionStorage.getItem('courierId') || ('CRS-' + (Math.floor(Math.random()*10000)));
+            sessionStorage.setItem('courierId', courierId);
+
+            function emitPosition(lat, lng) {
+                const payload = { courierId, lat, lng, timestamp: new Date().toISOString() };
+                try { socket.emit('courierPosition', payload); }
+                catch(e){ console.warn('emit courierPosition failed', e); }
+            }
+
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(pos => {
+                    emitPosition(pos.coords.latitude, pos.coords.longitude);
+                }, err => {
+                    console.warn('Geolocation watch failed, starting simulation', err && err.message);
+                    // start simulation if permission denied
+                    startSimulation();
+                }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 });
+            } else {
+                startSimulation();
+            }
+
+            // simple simulation for dev when geolocation unavailable
+            let simInterval = null;
+            function startSimulation(){
+                let lat = 0.4162 + (Math.random()-0.5)*0.01;
+                let lng = 9.4673 + (Math.random()-0.5)*0.01;
+                if(simInterval) clearInterval(simInterval);
+                simInterval = setInterval(()=>{
+                    lat += (Math.random()-0.5)*0.001;
+                    lng += (Math.random()-0.5)*0.001;
+                    emitPosition(lat, lng);
+                }, 4000);
+            }
+        } catch (e) { console.warn('Socket.IO not available (coursier):', e && e.message); }
+    })();
+</script>

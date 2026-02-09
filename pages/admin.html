@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Administration - Utilisateurs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Poppins',sans-serif;background:#f7fafc;padding:24px}
+    .container{max-width:1000px;margin:0 auto}
+    .card{background:#fff;padding:16px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
+    h1{margin-bottom:12px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:8px;border-bottom:1px solid #eef2f6;text-align:left}
+    .controls{display:flex;gap:8px}
+    .cta{padding:8px 12px;background:#2563EB;color:#fff;border:none;border-radius:6px;cursor:pointer}
+    .danger{background:#ef4444}
+    .form-row{display:flex;gap:8px;align-items:center}
+    input,select{padding:8px;border:1px solid #e6e9ef;border-radius:6px}
+    .muted{color:#6b7280}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Administration des utilisateurs</h1>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="openAdd" class="cta">Ajouter un utilisateur</button>
+          <input id="searchInput" placeholder="Rechercher utilisateur ou rôle" style="padding:8px;border:1px solid #e6e9ef;border-radius:6px;min-width:240px">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="muted">Total : <span id="totalCount">0</span></div>
+          <div id="pagination" style="display:flex;gap:6px;align-items:center"></div>
+        </div>
+      </div>
+
+      <table id="usersTable">
+        <thead>
+          <tr><th>Utilisateur</th><th>Role</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <!-- Edit/Add Modal -->
+      <div id="userModal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;z-index:2000">
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5)" id="userModalOverlay"></div>
+        <div style="position:relative;background:#fff;padding:16px;border-radius:8px;width:360px;max-width:95%;z-index:2001">
+          <h3 id="modalTitle">Ajouter un utilisateur</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+            <input id="modalUsername" placeholder="Nom d'utilisateur">
+            <input id="modalPassword" placeholder="Mot de passe" type="password">
+            <select id="modalRole">
+              <option value="manager">Manager</option>
+              <option value="coursier">Coursier</option>
+              <option value="pharmacien">Pharmacien</option>
+            </select>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button id="modalCancel" class="cta" style="background:#e6e9ef;color:#111">Annuler</button>
+              <button id="modalSave" class="cta">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit log -->
+      <div style="margin-top:18px">
+        <h3>Journal d'audit</h3>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <button id="clearAudit" class="cta" style="background:#ef4444">Effacer le journal</button>
+          <div class="muted">Dernières actions</div>
+        </div>
+        <table id="auditTable">
+          <thead><tr><th>Action</th><th>Utilisateur</th><th>Par</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/auth.js"></script>
+  <script>
+    authRequireRole('admin', {});
+
+    // Pagination/search state
+    let currentPage = 1;
+    const itemsPerPage = 8;
+
+    function renderPagination(total){
+      const pages = Math.max(1, Math.ceil(total / itemsPerPage));
+      const container = document.getElementById('pagination');
+      container.innerHTML = '';
+      const prev = document.createElement('button'); prev.textContent = '<'; prev.disabled = currentPage === 1; prev.className='cta'; prev.style.padding='6px 8px'; prev.addEventListener('click', ()=>{ if(currentPage>1){ currentPage--; refresh(); }});
+      container.appendChild(prev);
+      for(let p=1;p<=pages;p++){
+        const b = document.createElement('button'); b.textContent = p; b.className='cta'; b.style.padding='6px 8px'; if(p===currentPage) b.style.boxShadow='inset 0 0 0 2px rgba(0,0,0,0.08)'; b.addEventListener('click', ()=>{ currentPage=p; refresh(); }); container.appendChild(b);
+      }
+      const next = document.createElement('button'); next.textContent = '>'; next.disabled = currentPage === pages; next.className='cta'; next.style.padding='6px 8px'; next.addEventListener('click', ()=>{ if(currentPage<pages){ currentPage++; refresh(); }});
+      container.appendChild(next);
+    }
+
+    function refresh(){
+      const users = Object.values(getUsers());
+      const query = (document.getElementById('searchInput').value || '').toLowerCase();
+      const filtered = users.filter(u => u.username.toLowerCase().includes(query) || (u.role||'').toLowerCase().includes(query));
+      const total = filtered.length;
+      document.getElementById('totalCount').textContent = total;
+      // pagination
+      const start = (currentPage-1)*itemsPerPage;
+      const pageItems = filtered.slice(start, start+itemsPerPage);
+      const tbody = document.querySelector('#usersTable tbody');
+      tbody.innerHTML = '';
+      pageItems.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${u.username}</td><td>${u.role}</td><td class="controls"><button data-user="${u.username}" class="edit">Modifier</button><button data-user="${u.username}" class="del danger">Supprimer</button></td>`;
+        tbody.appendChild(tr);
+      });
+      // attach handlers
+      document.querySelectorAll('.del').forEach(b=> b.addEventListener('click', function(){ if(b.dataset.user === 'admin'){ return showToast('Impossible de supprimer l administrateur par défaut', 'error'); } if(confirm('Supprimer cet utilisateur ?')){ deleteUser(this.dataset.user, sessionStorage.getItem('username')); refresh(); refreshAudits(); }}));
+      document.querySelectorAll('.edit').forEach(b=> b.addEventListener('click', function(){ openUserModal('edit', this.dataset.user); }));
+
+      renderPagination(total);
+    }
+
+    // Modal handlers
+    function openUserModal(mode, username){
+      const modal = document.getElementById('userModal');
+      const title = document.getElementById('modalTitle');
+      const overlay = document.getElementById('userModalOverlay');
+      const uname = document.getElementById('modalUsername');
+      const pwd = document.getElementById('modalPassword');
+      const role = document.getElementById('modalRole');
+      modal.style.display = 'flex';
+      if(mode === 'add'){
+        title.textContent = 'Ajouter un utilisateur'; uname.value=''; pwd.value=''; role.value='manager'; uname.dataset.original = '';
+      } else {
+        title.textContent = 'Modifier utilisateur'; const users = getUsers(); const u = users[username]; if(u){ uname.value = u.username; pwd.value=''; role.value = u.role; uname.dataset.original = u.username; }
+      }
+      overlay.onclick = closeModal;
+    }
+
+    function closeModal(){ document.getElementById('userModal').style.display='none'; }
+
+    document.getElementById('openAdd').addEventListener('click', function(){ openUserModal('add'); });
+
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+
+    document.getElementById('modalSave').addEventListener('click', function(){
+      const uname = document.getElementById('modalUsername');
+      const pwd = document.getElementById('modalPassword');
+      const role = document.getElementById('modalRole');
+      const original = uname.dataset.original || '';
+      const actor = sessionStorage.getItem('username') || 'admin';
+      if(!uname.value.trim()) return showToast('Nom d utilisateur requis', 'error');
+      if(!original){
+        if(!pwd.value) return showToast('Mot de passe requis pour nouvel utilisateur', 'error');
+        const ok = addUser(uname.value.trim(), pwd.value, role.value, actor);
+        if(!ok) return showToast('Utilisateur existe déjà', 'error');
+        closeModal(); refresh(); refreshAudits();
+      } else {
+        const data = { username: uname.value.trim(), role: role.value };
+        if(pwd.value) data.password = pwd.value;
+        const ok = updateUser(original, data, actor);
+        if(!ok) return showToast('Erreur mise à jour', 'error');
+        closeModal(); refresh(); refreshAudits();
+      }
+    });
+
+    // Search
+    document.getElementById('searchInput').addEventListener('input', function(){ currentPage = 1; refresh(); });
+
+    // Audits
+    function refreshAudits(){
+      const logs = getAudits();
+      const tbody = document.querySelector('#auditTable tbody');
+      tbody.innerHTML = '';
+      logs.slice(0,50).forEach(l=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${l.action}</td><td>${l.userAffected || ''}</td><td>${l.byUser || ''}</td><td>${new Date(l.timestamp).toLocaleString()}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('clearAudit').addEventListener('click', function(){ if(confirm('Effacer le journal d audit ?')){ clearAudits(); refreshAudits(); }});
+
+    document.addEventListener('DOMContentLoaded', function(){ refresh(); refreshAudits(); });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <link rel="stylesheet" href="../assets/css/toast.css" />
+        <script src="../assets/js/toast.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  </script>
+</body>
+</html>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  (function(){
+    try {
+      const socket = io();
+      socket.emit('join','admin');
+
+      function ensureAdminContainer(){
+        let c = document.getElementById('adminActivity');
+        if (!c) {
+          c = document.createElement('div');
+          c.id = 'adminActivity';
+          c.style.position = 'fixed';
+          c.style.left = '12px';
+          c.style.top = '80px';
+          c.style.width = '360px';
+          c.style.maxHeight = '70vh';
+          c.style.overflow = 'auto';
+          document.body.appendChild(c);
+        }
+        return c;
+      }
+
+      socket.on('activity', a => {
+        console.log('admin activity', a);
+        const c = ensureAdminContainer();
+        const item = document.createElement('div');
+        item.style.background = '#fff';
+        item.style.border = '1px solid #e5e7eb';
+        item.style.padding = '10px';
+        item.style.marginTop = '8px';
+        item.textContent = `Activity: ${a.type || ''}`;
+        c.prepend(item);
+      });
+
+      socket.on('newOrder', order => {
+        const c = ensureAdminContainer();
+        const item = document.createElement('div');
+        item.style.background = '#f0f9ff';
+        item.style.border = '1px solid #dbeafe';
+        item.style.padding = '10px';
+        item.style.marginTop = '8px';
+        item.textContent = `Nouvelle commande: ${order.orderId || ''}`;
+        c.prepend(item);
+      });
+
+      socket.on('orderValidated', d => {
+        const c = ensureAdminContainer();
+        const item = document.createElement('div');
+        item.style.background = '#ecfeff';
+        item.style.border = '1px solid #bffcf6';
+        item.style.padding = '10px';
+        item.style.marginTop = '8px';
+        item.textContent = `Commande validée: ${d.orderId || ''}`;
+        c.prepend(item);
+      });
+
+      socket.on('orderPrepared', d => {
+        const c = ensureAdminContainer();
+        const item = document.createElement('div');
+        item.style.background = '#fffbeb';
+        item.style.border = '1px solid #fef3c7';
+        item.style.padding = '10px';
+        item.style.marginTop = '8px';
+        item.textContent = `Commande préparée: ${d.orderId || ''}`;
+        c.prepend(item);
+      });
+
+    } catch (e) { console.warn('Socket.IO not available (admin):', e && e.message); }
+  })();
+</script>

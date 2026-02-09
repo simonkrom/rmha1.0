@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacie de Proximité - Conciergerie Médicale</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/toast.css" />
+    <style>
+        :root {
+            --primary: #10B981;
+            --primary-dark: #0DA271;
+            --secondary: #2563EB;
+            --accent: #F59E0B;
+            --light: #F9FAFB;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light-gray: #E5E7EB;
+            --white: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            background: url('../assets/images/background.png') center/cover fixed no-repeat, var(--white);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .logo-img {
+            height: 48px;
+            width: auto;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .logo-img {
+                height: 40px;
+            }
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .logo-text span {
+            color: var(--secondary);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-icons a {
+            color: var(--dark);
+            font-size: 1.2rem;
+            text-decoration: none;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 30px 0;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .page-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            color: var(--dark);
+            flex-grow: 1;
+        }
+
+        /* Patient Info Banner */
+        .patient-banner {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .patient-info h2 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .patient-info p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .patient-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 30px 0 50px;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--light-gray);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .progress-step {
+            position: relative;
+            z-index: 2;
+            background-color: var(--white);
+            padding: 0 10px;
+            text-align: center;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            background-color: var(--light-gray);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active .step-circle {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .progress-step.completed .step-circle {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .progress-step.active .step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            padding-bottom: 50px;
+        }
+
+        @media (min-width: 1024px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        /* Scanner Section */
+        .scanner-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .scanner-container {
+            text-align: center;
+            padding: 40px 20px;
+            border: 3px dashed var(--light-gray);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: var(--light);
+        }
+
+        .scanner-container:hover {
+            border-color: var(--primary);
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+
+        .scanner-icon {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .scanner-text h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .scanner-text p {
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        .scanner-button {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 12px 30px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scanner-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* OCR Results */
+        .ocr-results {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .ocr-results.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .ocr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .ocr-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            background-color: var(--light);
+            border: none;
+            border-radius: var(--radius);
+            color: var(--dark);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .action-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .medications-list {
+            border: 1px solid var(--light-gray);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .medication-header {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            background-color: var(--light);
+            padding: 15px 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .medication-row {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--light-gray);
+            align-items: center;
+        }
+
+        .medication-row:last-child {
+            border-bottom: none;
+        }
+
+        .medication-name {
+            font-weight: 500;
+        }
+
+        .medication-dosage {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .medication-price {
+            font-weight: 600;
+            color: var(--primary);
+            text-align: right;
+        }
+
+        .medication-price::after {
+            content: " CFA";
+            font-size: 0.9rem;
+        }
+
+        /* Summary Section */
+        .summary-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-items {
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .summary-total {
+            background-color: var(--light);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-top: 20px;
+        }
+
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .total-label {
+            color: var(--gray);
+        }
+
+        .total-value {
+            font-weight: 600;
+        }
+
+        .service-fee {
+            color: var(--accent);
+        }
+
+        .grand-total {
+            border-top: 2px solid var(--light-gray);
+            padding-top: 15px;
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .next-button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .next-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .next-button:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+        }
+
+        /* Step 2: Insurance Section */
+        #insuranceSection {
+            display: none;
+        }
+
+        #insuranceSection.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Insurance Options */
+        .insurance-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .insurance-option {
+            padding: 20px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .insurance-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .insurance-option.selected {
+            border-color: var(--primary);
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+
+        .insurance-logo {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .insurance-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .sub-options {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .sub-options.active {
+            display: block;
+        }
+
+        .sub-option {
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .sub-option:hover {
+            background-color: var(--light);
+        }
+
+        .sub-option.selected {
+            background-color: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        /* Calculation Section */
+        .calculation-section {
+            background-color: var(--light);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin: 25px 0;
+        }
+
+        .calculation-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .remaining-amount {
+            background-color: #FEF3C7;
+            border: 2px solid #F59E0B;
+            padding: 15px;
+            border-radius: var(--radius);
+            margin: 15px 0;
+            font-weight: 700;
+            text-align: center;
+            color: var(--dark);
+        }
+
+        /* Step 3: Insurance Scanner */
+        #insuranceScannerSection {
+            display: none;
+        }
+
+        #insuranceScannerSection.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .insurance-scanner {
+            margin-top: 30px;
+        }
+
+        /* Step 4: Payment Section */
+        #paymentSection {
+            display: none;
+        }
+
+        #paymentSection.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .payment-method {
+            padding: 20px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .payment-method:hover {
+            border-color: var(--primary);
+        }
+
+        .payment-method.selected {
+            border-color: var(--primary);
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+
+        .payment-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .payment-form {
+            margin-top: 30px;
+            padding: 25px;
+            background-color: var(--light);
+            border-radius: var(--radius);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .phone-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .country-code {
+            flex: 0 0 100px;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            background-color: var(--white);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .info-box {
+            background-color: #F0F9FF;
+            padding: 15px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Step 5: Invoice Section */
+        #invoiceSection {
+            display: none;
+        }
+
+        #invoiceSection.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .invoice-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 40px;
+        }
+
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .invoice-title {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .invoice-success {
+            color: var(--secondary);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .invoice-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+
+        @media (min-width: 768px) {
+            .invoice-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .invoice-details {
+            background-color: var(--light);
+            padding: 30px;
+            border-radius: var(--radius);
+        }
+
+        .invoice-patient {
+            margin-bottom: 30px;
+        }
+
+        .invoice-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .invoice-total {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid var(--light-gray);
+        }
+
+        .remaining-highlight {
+            background-color: #FEF3C7;
+            padding: 12px;
+            border-radius: var(--radius);
+            margin: 15px 0;
+            font-weight: 700;
+            border: 2px solid #F59E0B;
+        }
+
+        .qr-section {
+            text-align: center;
+            padding: 30px;
+            background-color: var(--light);
+            border-radius: var(--radius);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 600;
+            border-radius: 15px;
+            font-size: 1.2rem;
+        }
+
+        .timer {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .order-status {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--accent);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .invoice-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .invoice-button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .invoice-button.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .invoice-button.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        /* Step Navigation */
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .step-button {
+            padding: 12px 30px;
+            background-color: var(--light-gray);
+            color: var(--dark);
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-button.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .modal-message {
+            margin-bottom: 25px;
+            color: var(--gray);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .modal-button.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-button.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <img src="../assets/images/Havre_Anine.png" alt="Le Havre d'Anine" class="logo-img">
+                    <div class="logo-text">Conciergerie <span>Médicale</span></div>
+                </a>
+                
+                <div class="nav-icons">
+                    <a href="index.html" title="Accueil">
+                        <i class="fas fa-home"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header fade-in">
+            <button class="back-button" onclick="window.location.href='index.html'">
+                <i class="fas fa-arrow-left"></i>
+                <span>Retour</span>
+            </button>
+            <h1 class="page-title">Pharmacie de Proximité</h1>
+            <a href="index.html" class="nav-icons">
+                <i class="fas fa-home"></i>
+            </a>
+        </div>
+
+        <!-- Patient Info -->
+        <div class="patient-banner fade-in" id="patientBanner">
+            <div class="patient-info">
+                <h2 id="patientName">Chargement...</h2>
+                <p id="patientPhone">Téléphone: Chargement...</p>
+                <p id="patientLocation">Localisation: Chargement...</p>
+            </div>
+            <div class="patient-actions">
+                <button class="edit-btn" onclick="window.location.href='enregistrement.html'">
+                    <i class="fas fa-edit"></i> Modifier
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar fade-in">
+            <div class="progress-step active" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Scanner Ordonnance</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Assurance</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Scanner Assurance</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Paiement</div>
+            </div>
+            <div class="progress-step" data-step="5">
+                <div class="step-circle">5</div>
+                <div class="step-label">Facture</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Step 1: Prescription Scanner -->
+            <div id="scannerStep">
+                <div class="scanner-section fade-in">
+                    <h2 class="section-title">
+                        <i class="fas fa-prescription-bottle-alt"></i>
+                        Scanner votre ordonnance
+                    </h2>
+                    <div class="scanner-container" onclick="document.getElementById('prescriptionFile').click()">
+                        <i class="fas fa-file-prescription scanner-icon"></i>
+                        <div class="scanner-text">
+                            <h3>Déposez votre ordonnance ici</h3>
+                            <p>Formats supportés: JPG, PNG, PDF</p>
+                            <p>Ou cliquez pour parcourir vos fichiers</p>
+                        </div>
+                        <button class="scanner-button">
+                            <i class="fas fa-camera"></i>
+                            Scanner l'ordonnance
+                        </button>
+                    </div>
+                    <input type="file" id="prescriptionFile" class="file-input" accept=".jpg,.jpeg,.png,.pdf">
+                </div>
+
+                <!-- OCR Results -->
+                <div class="ocr-results" id="ocrResults">
+                    <div class="ocr-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-list-alt"></i>
+                            Médicaments détectés
+                        </h2>
+                        <div class="ocr-actions">
+                            <button class="action-btn" onclick="editPrescription()">
+                                <i class="fas fa-edit"></i>
+                                Modifier
+                            </button>
+                            <button class="action-btn primary" onclick="validatePrescription()">
+                                <i class="fas fa-check"></i>
+                                Valider
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="medications-list">
+                        <div class="medication-header">
+                            <div>Médicament</div>
+                            <div>Prix</div>
+                        </div>
+                        <div id="medicationsList">
+                            <!-- Medications will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="summary-section fade-in">
+                <h2 class="summary-title">
+                    <i class="fas fa-shopping-cart"></i>
+                    Récapitulatif
+                </h2>
+                
+                <div class="summary-items" id="summaryItems">
+                    <div class="empty-summary">
+                        <p style="text-align: center; color: var(--gray); padding: 20px;">
+                            Aucun médicament détecté
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="summary-total">
+                    <div class="total-line">
+                        <span class="total-label">Sous-total médicaments:</span>
+                        <span class="total-value" id="medicationsSubtotal">0 CFA</span>
+                    </div>
+                    <div class="total-line service-fee">
+                        <span class="total-label">Frais de service:</span>
+                        <span class="total-value">5 000 CFA</span>
+                    </div>
+                    <div class="total-line grand-total">
+                        <span class="total-label">Total à payer:</span>
+                        <span class="total-value" id="grandTotal">5 000 CFA</span>
+                    </div>
+                </div>
+                
+                <button class="next-button" id="nextButton" disabled onclick="nextStep()">
+                    <span>Suivant</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Step 2: Insurance Selection -->
+            <div id="insuranceSection">
+                <div class="scanner-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Assurance Médicale
+                        </h2>
+                    </div>
+                    
+                    <div class="calculation-section">
+                        <div class="calculation-line">
+                            <span>Total médicaments:</span>
+                            <span id="insuranceMedicationsTotal">0 CFA</span>
+                        </div>
+                        <div class="calculation-line">
+                            <span>Frais de service:</span>
+                            <span>5 000 CFA</span>
+                        </div>
+                        <div class="calculation-line grand-total">
+                            <span>Total à payer:</span>
+                            <span id="insuranceTotalBefore">5 000 CFA</span>
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 20px 0 15px;">Mode de paiement :</h3>
+                    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="insuranceMode" value="without" checked id="withoutInsurance">
+                            <span>Sans assurance</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="insuranceMode" value="with" id="withInsurance">
+                            <span>Avec assurance</span>
+                        </label>
+                    </div>
+
+                    <div id="insuranceSelection" style="display: none;">
+                        <h3 style="margin: 20px 0 15px;">Assurances disponibles :</h3>
+                        <div class="insurance-options" id="insuranceOptions">
+                            <!-- Insurance options will be populated by JavaScript -->
+                        </div>
+
+                        <div id="subOptionsContainer" style="display: none;">
+                            <h3 style="margin: 20px 0 15px;">Type de couverture :</h3>
+                            <div id="subOptions">
+                                <!-- Sub-options will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div id="insuranceCalculation" style="display: none; margin-top: 20px;">
+                            <div class="calculation-section">
+                                <div class="calculation-line">
+                                    <span>Total médicaments:</span>
+                                    <span id="calcMedicationsTotal">0 CFA</span>
+                                </div>
+                                <div class="calculation-line">
+                                    <span>Prise en charge (<span id="coveragePercent">0%</span>):</span>
+                                    <span id="coverageAmount">-0 CFA</span>
+                                </div>
+                                <div class="calculation-line">
+                                    <span>Reste à charge:</span>
+                                    <span id="remainingAmount">0 CFA</span>
+                                </div>
+                                <div class="calculation-line">
+                                    <span>Frais de service:</span>
+                                    <span>+5 000 CFA</span>
+                                </div>
+                                <div class="remaining-amount" id="remainingHighlight">
+                                    Différence restante: 0 CFA
+                                </div>
+                                <div class="calculation-line grand-total">
+                                    <span>Total final:</span>
+                                    <span id="finalTotal">5 000 CFA</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-navigation">
+                        <button class="step-button" onclick="prevStep()">
+                            <i class="fas fa-arrow-left"></i>
+                            Retour
+                        </button>
+                        <button class="step-button primary" id="insuranceNextButton" onclick="nextStep()">
+                            Continuer
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Insurance Scanner -->
+            <div id="insuranceScannerSection">
+                <div class="scanner-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-id-card"></i>
+                            Scanner votre carte d'assurance
+                        </h2>
+                    </div>
+                    
+                    <div class="insurance-scanner">
+                        <div class="scanner-container" onclick="document.getElementById('insuranceCardFile').click()">
+                            <i class="fas fa-id-card scanner-icon"></i>
+                            <div class="scanner-text">
+                                <h3>Déposez votre carte d'assurance ici</h3>
+                                <p>Formats supportés: JPG, PNG, PDF</p>
+                                <p>Ou cliquez pour parcourir vos fichiers</p>
+                            </div>
+                            <button class="scanner-button">
+                                <i class="fas fa-camera"></i>
+                                Scanner la carte
+                            </button>
+                        </div>
+                        <input type="file" id="insuranceCardFile" class="file-input" accept=".jpg,.jpeg,.png,.pdf">
+                    </div>
+
+                    <div id="insuranceCardDisplay" style="margin-top: 20px; display: none;">
+                        <!-- Insurance card preview will be shown here -->
+                    </div>
+
+                    <div class="step-navigation">
+                        <button class="step-button" onclick="prevStep()">
+                            <i class="fas fa-arrow-left"></i>
+                            Retour
+                        </button>
+                        <button class="step-button primary" id="scannerNextButton" onclick="nextStep()" disabled>
+                            Continuer
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Payment Section -->
+            <div id="paymentSection">
+                <div class="scanner-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-credit-card"></i>
+                            Paiement Mobile Money
+                        </h2>
+                    </div>
+                    
+                    <div class="calculation-section" style="margin-bottom: 30px;">
+                        <div class="calculation-line grand-total">
+                            <span>Montant à payer:</span>
+                            <span id="paymentAmount">5 000 CFA</span>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom: 15px;">Opérateur Mobile Money :</h3>
+                    <div class="payment-methods">
+                        <div class="payment-method" data-provider="airtel">
+                            <i class="fas fa-mobile-alt payment-icon"></i>
+                            <div class="payment-name">Airtel Money</div>
+                        </div>
+                        <div class="payment-method" data-provider="moov">
+                            <i class="fas fa-mobile-alt payment-icon"></i>
+                            <div class="payment-name">Moov Money</div>
+                        </div>
+                        <div class="payment-method" data-provider="libreville">
+                            <i class="fas fa-mobile-alt payment-icon"></i>
+                            <div class="payment-name">Libreville Money</div>
+                        </div>
+                    </div>
+
+                    <div class="payment-form" id="paymentForm" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Numéro de téléphone</label>
+                            <div class="phone-input-container">
+                                <div class="country-code">
+                                    <i class="fas fa-flag"></i>
+                                    +241
+                                </div>
+                                <input type="tel" id="paymentPhone" class="form-input" placeholder="01 23 45 67" pattern="[0-9]{2} [0-9]{2} [0-9]{2} [0-9]{2}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Code PIN Mobile Money</label>
+                            <input type="password" id="paymentPin" class="form-input" placeholder="••••" maxlength="4">
+                        </div>
+
+                        <div class="info-box">
+                            <p>
+                                <i class="fas fa-info-circle" style="color: var(--primary); margin-right: 8px;"></i>
+                                Après validation, vous serez redirigé vers l'interface de paiement de votre opérateur
+                            </p>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                            <input type="checkbox" id="authorizePayment">
+                            <label for="authorizePayment" style="cursor: pointer;">
+                                J'autorise le prélèvement de <span id="authorizeAmount">5 000 CFA</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="step-navigation">
+                        <button class="step-button" onclick="prevStep()">
+                            <i class="fas fa-arrow-left"></i>
+                            Retour
+                        </button>
+                        <button class="step-button primary" id="paymentButton" onclick="processPayment()" disabled>
+                            Valider le paiement
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Invoice Section -->
+            <div id="invoiceSection">
+                <div class="invoice-section fade-in">
+                    <div class="invoice-header">
+                        <h1 class="invoice-title">Facture</h1>
+                        <div class="invoice-success">
+                            <i class="fas fa-check-circle" style="color: var(--secondary);"></i>
+                            Paiement confirmé
+                        </div>
+                        <p style="color: var(--gray);">
+                            Référence: <strong id="invoiceReference">PH-2024-001234</strong> | 
+                            Date: <strong id="invoiceDate">15/11/2024 14:30</strong>
+                        </p>
+                    </div>
+
+                    <div class="invoice-grid">
+                        <div class="invoice-details">
+                            <div class="invoice-patient" id="invoicePatientInfo">
+                                <!-- Patient info will be populated by JavaScript -->
+                            </div>
+
+                            <h3 style="margin-bottom: 15px;">Médicaments prescrits :</h3>
+                            <div id="invoiceMedicationsList">
+                                <!-- Medications list will be populated by JavaScript -->
+                            </div>
+
+                            <div style="margin-top: 25px;">
+                                <div class="invoice-item">
+                                    <span>Total médicaments:</span>
+                                    <span id="invoiceMedicationsTotal">0 CFA</span>
+                                </div>
+                                <div class="invoice-item">
+                                    <span>Prise en charge assurance:</span>
+                                    <span id="invoiceCoverage">-0 CFA</span>
+                                </div>
+                                <div class="remaining-highlight" id="invoiceRemaining">
+                                    Différence restante: 0 CFA
+                                </div>
+                                <div class="invoice-item">
+                                    <span>Frais de service:</span>
+                                    <span>5 000 CFA</span>
+                                </div>
+                                <div class="invoice-total">
+                                    <span>TOTAL PAYÉ:</span>
+                                    <span id="invoiceTotalPaid">5 000 CFA</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="qr-section">
+                            <div class="qr-code" id="qrCode">
+                                <!-- QR Code will be generated here -->
+                                <div style="text-align: center;">
+                                    <div style="font-size: 3rem; margin-bottom: 10px;">💊</div>
+                                    <div>PHARMACIE</div>
+                                    <div style="font-size: 0.8rem; margin-top: 5px;">Livraison express</div>
+                                </div>
+                            </div>
+                            <div class="timer" id="countdownTimer">01:00:00</div>
+                            <div class="order-status" id="orderStatus">COMMANDE EN COURS</div>
+                            <p style="margin-top: 15px; color: var(--gray);">
+                                Votre coursier arrivera dans l'heure
+                            </p>
+                            <div class="invoice-actions">
+                                <button class="invoice-button secondary" onclick="trackOrder()">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Suivre ma commande
+                                </button>
+                                <button class="invoice-button primary" onclick="downloadInvoice()">
+                                    <i class="fas fa-download"></i>
+                                    Télécharger
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <i class="fas fa-check-circle modal-icon"></i>
+            <h2 class="modal-title">Paiement Réussi !</h2>
+            <p class="modal-message">Votre paiement a été traité avec succès. Génération de votre facture...</p>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal" id="loadingModal">
+        <div class="modal-content">
+            <div class="spinner" style="margin: 0 auto 20px; width: 50px; height: 50px; border-width: 5px;"></div>
+            <h2 class="modal-title">Analyse en cours</h2>
+            <p class="modal-message" id="loadingMessage">Veuillez patienter...</p>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal" id="errorModal">
+        <div class="modal-content">
+            <i class="fas fa-exclamation-triangle modal-icon" style="color: #EF4444;"></i>
+            <h2 class="modal-title">Erreur de traitement</h2>
+            <p class="modal-message" id="errorMessage">Une erreur est survenue lors du traitement.</p>
+            <div class="modal-buttons">
+                <button class="modal-button primary" onclick="closeModal('errorModal')">Réessayer</button>
+                <button class="modal-button secondary" onclick="window.location.href='index.html'">Accueil</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database of medications with prices (Gabon market prices)
+        const medicationsDatabase = [
+            { id: 1, name: "Paracétamol 500mg", dosage: "20 comprimés", price: 2500, category: "Antalgique" },
+            { id: 2, name: "Amoxicilline 1g", dosage: "12 comprimés", price: 4800, category: "Antibiotique" },
+            { id: 3, name: "Ibuprofène 400mg", dosage: "30 comprimés", price: 3200, category: "Anti-inflammatoire" },
+            { id: 4, name: "Metformine 850mg", dosage: "30 comprimés", price: 4500, category: "Antidiabétique" },
+            { id: 5, name: "Amlodipine 10mg", dosage: "30 comprimés", price: 5200, category: "Antihypertenseur" },
+            { id: 6, name: "Omeprazole 20mg", dosage: "28 gélules", price: 3800, category: "Anti-ulcéreux" },
+            { id: 7, name: "Losartan 50mg", dosage: "30 comprimés", price: 5500, category: "Antihypertenseur" },
+            { id: 8, name: "Atorvastatine 20mg", dosage: "30 comprimés", price: 6200, category: "Hypolipémiant" },
+            { id: 9, name: "Salbutamol Spray", dosage: "200 doses", price: 8500, category: "Antiasthmatique" },
+            { id: 10, name: "Metronidazole 500mg", dosage: "20 comprimés", price: 4100, category: "Antibiotique" },
+            { id: 11, name: "Ciprofloxacine 500mg", dosage: "10 comprimés", price: 3900, category: "Antibiotique" },
+            { id: 12, name: "Diclofénac 50mg", dosage: "30 comprimés", price: 3600, category: "Anti-inflammatoire" },
+            { id: 13, name: "Hydrochlorothiazide 25mg", dosage: "30 comprimés", price: 2900, category: "Diurétique" },
+            { id: 14, name: "Sertraline 50mg", dosage: "30 comprimés", price: 5800, category: "Antidépresseur" },
+            { id: 15, name: "Insuline Glargine", dosage: "Cartouche 3ml", price: 12500, category: "Antidiabétique" },
+            { id: 16, name: "Lévothyroxine 100µg", dosage: "30 comprimés", price: 4200, category: "Hormone" },
+            { id: 17, name: "Warfarine 5mg", dosage: "30 comprimés", price: 3400, category: "Anticoagulant" },
+            { id: 18, name: "Spironolactone 25mg", dosage: "30 comprimés", price: 3100, category: "Diurétique" },
+            { id: 19, name: "Prednisone 20mg", dosage: "30 comprimés", price: 2700, category: "Corticoïde" },
+            { id: 20, name: "Furosémide 40mg", dosage: "30 comprimés", price: 2300, category: "Diurétique" }
+        ];
+
+        // Database of insurance companies with coverages
+        const insuranceDatabase = {
+            "CNAMGS": [
+                { name: "GEF", coverage: 80 },
+                { name: "Secteur Privé", coverage: 70 },
+                { name: "Secteur Public", coverage: 60 }
+            ],
+            "ASCOMA": [
+                { name: "Couverture 100%", coverage: 100 },
+                { name: "Couverture 80%", coverage: 80 },
+                { name: "Couverture 60%", coverage: 60 }
+            ],
+            "AGF": [
+                { name: "Formule Premium", coverage: 90 },
+                { name: "Formule Standard", coverage: 75 },
+                { name: "Formule Basique", coverage: 60 }
+            ],
+            "SUNASS": [
+                { name: "Gold", coverage: 100 },
+                { name: "Silver", coverage: 80 },
+                { name: "Bronze", coverage: 65 }
+            ],
+            "GABON ASSURANCES": [
+                { name: "Complet", coverage: 85 },
+                { name: "Partiel", coverage: 70 }
+            ],
+            "NSIA": [
+                { name: "Premium", coverage: 95 },
+                { name: "Classic", coverage: 80 },
+                { name: "Essentiel", coverage: 65 }
+            ]
+        };
+
+        // Global variables
+        let selectedMedications = [];
+        let selectedInsurance = null;
+        let selectedCoverage = null;
+        let currentStep = 1;
+        let patientData = null;
+        let orderData = {
+            orderId: null,
+            medicationsSubtotal: 0,
+            insuranceCoverage: 0,
+            remainingAmount: 0,
+            serviceFee: 5000,
+            totalAmount: 5000,
+            paymentProvider: null,
+            paymentPhone: null,
+            scannedPrescriptionFile: null,
+            scannedInsuranceCardFile: null
+        };
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPatientData();
+            initializeInsuranceOptions();
+            setupEventListeners();
+            updateProgressBar();
+        });
+
+        // Load patient data from session storage
+        function loadPatientData() {
+            const savedPatient = sessionStorage.getItem('currentPatient');
+            if (savedPatient) {
+                patientData = JSON.parse(savedPatient);
+                displayPatientInfo();
+            } else {
+                setTimeout(() => {
+                            showToast("Aucune donnée patient trouvée. Veuillez vous enregistrer d'abord.", 'warning');
+                    window.location.href = 'enregistrement.html';
+                }, 500);
+            }
+        }
+
+        // Display patient information
+        function displayPatientInfo() {
+            if (patientData) {
+                document.getElementById('patientName').textContent = `${patientData.firstName} ${patientData.lastName}`;
+                document.getElementById('patientPhone').textContent = `Téléphone: ${patientData.phone}`;
+                document.getElementById('patientLocation').textContent = `Localisation: ${patientData.city}, ${patientData.address}`;
+            }
+        }
+
+        // Initialize insurance options
+        function initializeInsuranceOptions() {
+            const insuranceOptions = document.getElementById('insuranceOptions');
+            insuranceOptions.innerHTML = '';
+            
+            Object.keys(insuranceDatabase).forEach(insuranceName => {
+                const option = document.createElement('div');
+                option.className = 'insurance-option';
+                option.dataset.insurance = insuranceName;
+                option.innerHTML = `
+                    <div class="insurance-logo">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="insurance-name">${insuranceName}</div>
+                `;
+                
+                option.addEventListener('click', function() {
+                    selectInsurance(insuranceName);
+                });
+                
+                insuranceOptions.appendChild(option);
+            });
+        }
+
+        // Select insurance
+        function selectInsurance(insuranceName) {
+            // Remove selected class from all options
+            document.querySelectorAll('.insurance-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            document.querySelector(`.insurance-option[data-insurance="${insuranceName}"]`).classList.add('selected');
+            
+            selectedInsurance = insuranceName;
+            
+            // Show sub-options
+            const subOptionsContainer = document.getElementById('subOptionsContainer');
+            const subOptions = document.getElementById('subOptions');
+            
+            subOptions.innerHTML = '';
+            insuranceDatabase[insuranceName].forEach(coverage => {
+                const subOption = document.createElement('div');
+                subOption.className = 'sub-option';
+                subOption.dataset.coverage = coverage.coverage;
+                subOption.textContent = `${coverage.name} ${coverage.coverage}%`;
+                
+                subOption.addEventListener('click', function() {
+                    // Remove selected class from all sub-options
+                    document.querySelectorAll('.sub-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked sub-option
+                    this.classList.add('selected');
+                    
+                    selectedCoverage = coverage.coverage;
+                    updateInsuranceCalculation();
+                });
+                
+                subOptions.appendChild(subOption);
+            });
+            
+            subOptionsContainer.style.display = 'block';
+            document.getElementById('insuranceCalculation').style.display = 'block';
+            
+            // Auto-select first coverage option
+            if (insuranceDatabase[insuranceName].length > 0) {
+                const firstOption = subOptions.querySelector('.sub-option');
+                firstOption.click();
+            }
+        }
+
+        // Update insurance calculation
+        function updateInsuranceCalculation() {
+            if (!selectedInsurance || !selectedCoverage) return;
+            
+            const medicationsTotal = orderData.medicationsSubtotal;
+            const coverageAmount = Math.round(medicationsTotal * (selectedCoverage / 100));
+            const remaining = medicationsTotal - coverageAmount;
+            const finalTotal = remaining + orderData.serviceFee;
+            
+            // Update display
+            document.getElementById('calcMedicationsTotal').textContent = `${medicationsTotal.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('coveragePercent').textContent = selectedCoverage;
+            document.getElementById('coverageAmount').textContent = `-${coverageAmount.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('remainingAmount').textContent = `${remaining.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('finalTotal').textContent = `${finalTotal.toLocaleString('fr-FR')} CFA`;
+            
+            // Update remaining highlight
+            const remainingHighlight = document.getElementById('remainingHighlight');
+            remainingHighlight.textContent = `Différence restante: ${remaining.toLocaleString('fr-FR')} CFA`;
+            
+            // Update order data
+            orderData.insuranceCoverage = coverageAmount;
+            orderData.remainingAmount = remaining;
+            orderData.totalAmount = finalTotal;
+            
+            // Update payment amount
+            document.getElementById('paymentAmount').textContent = `${finalTotal.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('authorizeAmount').textContent = `${finalTotal.toLocaleString('fr-FR')} CFA`;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Prescription file upload
+            document.getElementById('prescriptionFile').addEventListener('change', function(e) {
+                handlePrescriptionUpload(e);
+            });
+            
+            // Insurance mode toggle
+            document.querySelectorAll('input[name="insuranceMode"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const insuranceSelection = document.getElementById('insuranceSelection');
+                    const insuranceScannerSection = document.getElementById('insuranceScannerSection');
+                    
+                    if (this.value === 'with') {
+                        insuranceSelection.style.display = 'block';
+                    } else {
+                        insuranceSelection.style.display = 'none';
+                        insuranceScannerSection.classList.remove('active');
+                        selectedInsurance = null;
+                        selectedCoverage = null;
+                        
+                        // Reset insurance calculation
+                        orderData.insuranceCoverage = 0;
+                        orderData.remainingAmount = orderData.medicationsSubtotal;
+                        orderData.totalAmount = orderData.medicationsSubtotal + orderData.serviceFee;
+                    }
+                });
+            });
+            
+            // Insurance card file upload
+            document.getElementById('insuranceCardFile').addEventListener('change', function(e) {
+                handleInsuranceCardUpload(e);
+            });
+            
+            // Payment method selection
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.addEventListener('click', function() {
+                    // Remove selected class from all methods
+                    document.querySelectorAll('.payment-method').forEach(m => {
+                        m.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked method
+                    this.classList.add('selected');
+                    
+                    orderData.paymentProvider = this.dataset.provider;
+                    document.getElementById('paymentForm').style.display = 'block';
+                    validatePaymentForm();
+                });
+            });
+            
+            // Payment form validation
+            document.getElementById('paymentPhone').addEventListener('input', function(e) {
+                // Format phone number
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 8) value = value.substring(0, 8);
+                
+                let formatted = '';
+                for (let i = 0; i < value.length; i++) {
+                    if (i === 2 || i === 4 || i === 6) {
+                        formatted += ' ';
+                    }
+                    formatted += value[i];
+                }
+                
+                e.target.value = formatted;
+                validatePaymentForm();
+            });
+            
+            document.getElementById('paymentPin').addEventListener('input', validatePaymentForm);
+            document.getElementById('authorizePayment').addEventListener('change', validatePaymentForm);
+        }
+
+        // Handle prescription upload
+        function handlePrescriptionUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            showLoading('Analyse de l\'ordonnance...');
+            
+            // Simulate OCR processing
+            setTimeout(() => {
+                hideLoading();
+                
+                // Simulate detected medications (in real app, this would come from OCR)
+                const simulatedMedications = [
+                    { id: 1, name: "Paracétamol 500mg", dosage: "20 comprimés", price: 2500, quantity: 2 },
+                    { id: 2, name: "Amoxicilline 1g", dosage: "12 comprimés", price: 4800, quantity: 1 },
+                    { id: 3, name: "Ibuprofène 400mg", dosage: "30 comprimés", price: 3200, quantity: 1 }
+                ];
+                
+                selectedMedications = simulatedMedications;
+                orderData.scannedPrescriptionFile = file;
+                
+                displayMedications();
+                updateOrderSummary();
+                showOCRResults();
+                
+                // Enable next button
+                document.getElementById('nextButton').disabled = false;
+            }, 2000);
+        }
+
+        // Display medications from OCR results
+        function displayMedications() {
+            const medicationsList = document.getElementById('medicationsList');
+            medicationsList.innerHTML = '';
+            
+            selectedMedications.forEach(med => {
+                const totalPrice = med.price * med.quantity;
+                const row = document.createElement('div');
+                row.className = 'medication-row';
+                row.innerHTML = `
+                    <div>
+                        <div class="medication-name">${med.name}</div>
+                        <div class="medication-dosage">${med.dosage} × ${med.quantity}</div>
+                    </div>
+                    <div class="medication-price">${totalPrice.toLocaleString('fr-FR')}</div>
+                `;
+                medicationsList.appendChild(row);
+            });
+        }
+
+        // Show OCR results
+        function showOCRResults() {
+            document.getElementById('ocrResults').classList.add('active');
+        }
+
+        // Edit prescription
+        function editPrescription() {
+            showToast('Fonction d\'édition de l\'ordonnance - À implémenter', 'info');
+        }
+
+        // Validate prescription
+        function validatePrescription() {
+            showToast('Ordonnance validée avec succès', 'success');
+        }
+
+        // Handle insurance card upload
+        function handleInsuranceCardUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            orderData.scannedInsuranceCardFile = file;
+            
+            // Display file preview
+            const display = document.getElementById('insuranceCardDisplay');
+            display.style.display = 'block';
+            display.innerHTML = `
+                <div style="background-color: var(--light); padding: 15px; border-radius: var(--radius); display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-id-card" style="color: var(--primary); font-size: 1.5rem;"></i>
+                        <div>
+                            <div style="font-weight: 500;">${file.name}</div>
+                            <div style="font-size: 0.9rem; color: var(--gray);">
+                                ${(file.size / 1024).toFixed(2)} KB
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="removeInsuranceCard()" style="background: none; border: none; color: #EF4444; cursor: pointer; font-size: 1.2rem;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Enable next button
+            document.getElementById('scannerNextButton').disabled = false;
+        }
+
+        // Remove insurance card
+        function removeInsuranceCard() {
+            document.getElementById('insuranceCardFile').value = '';
+            document.getElementById('insuranceCardDisplay').style.display = 'none';
+            orderData.scannedInsuranceCardFile = null;
+            document.getElementById('scannerNextButton').disabled = true;
+        }
+
+        // Validate payment form
+        function validatePaymentForm() {
+            const paymentButton = document.getElementById('paymentButton');
+            const phone = document.getElementById('paymentPhone').value;
+            const pin = document.getElementById('paymentPin').value;
+            const authorized = document.getElementById('authorizePayment').checked;
+            
+            const phonePattern = /^\d{2} \d{2} \d{2} \d{2}$/;
+            const isValid = orderData.paymentProvider !== null &&
+                          phonePattern.test(phone) &&
+                          pin.length === 4 &&
+                          authorized;
+            
+            paymentButton.disabled = !isValid;
+        }
+
+        // Update order summary
+        function updateOrderSummary() {
+            const medicationsTotal = selectedMedications.reduce((sum, med) => sum + (med.price * med.quantity), 0);
+            const total = medicationsTotal + orderData.serviceFee;
+            
+            // Update totals
+            orderData.medicationsSubtotal = medicationsTotal;
+            orderData.totalAmount = total;
+            
+            // Update summary items
+            const summaryItems = document.getElementById('summaryItems');
+            summaryItems.innerHTML = '';
+            
+            selectedMedications.forEach((med, index) => {
+                const totalPrice = med.price * med.quantity;
+                const item = document.createElement('div');
+                item.className = 'summary-item';
+                item.innerHTML = `
+                    <span class="item-name">${med.name} × ${med.quantity}</span>
+                    <span class="item-price">${totalPrice.toLocaleString('fr-FR')} CFA</span>
+                `;
+                summaryItems.appendChild(item);
+            });
+            
+            // Update totals display
+            document.getElementById('medicationsSubtotal').textContent = `${medicationsTotal.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('grandTotal').textContent = `${total.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('insuranceMedicationsTotal').textContent = `${medicationsTotal.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('insuranceTotalBefore').textContent = `${total.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('paymentAmount').textContent = `${total.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('authorizeAmount').textContent = `${total.toLocaleString('fr-FR')} CFA`;
+        }
+
+        // Step navigation
+        function nextStep() {
+            if (currentStep < 5) {
+                currentStep++;
+                showStep(currentStep);
+                updateProgressBar();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+                updateProgressBar();
+            }
+        }
+
+        // Show specific step
+        function showStep(step) {
+            // Hide all steps
+            document.getElementById('scannerStep').style.display = 'none';
+            document.getElementById('insuranceSection').classList.remove('active');
+            document.getElementById('insuranceScannerSection').classList.remove('active');
+            document.getElementById('paymentSection').classList.remove('active');
+            document.getElementById('invoiceSection').classList.remove('active');
+            
+            // Show current step
+            switch(step) {
+                case 1:
+                    document.getElementById('scannerStep').style.display = 'block';
+                    break;
+                case 2:
+                    document.getElementById('insuranceSection').classList.add('active');
+                    updateInsuranceStep();
+                    break;
+                case 3:
+                    const withInsurance = document.getElementById('withInsurance').checked;
+                    if (withInsurance) {
+                        document.getElementById('insuranceScannerSection').classList.add('active');
+                    } else {
+                        // Skip insurance scanner if no insurance
+                        currentStep = 4;
+                        showStep(4);
+                        updateProgressBar();
+                        return;
+                    }
+                    break;
+                case 4:
+                    document.getElementById('paymentSection').classList.add('active');
+                    updatePaymentStep();
+                    break;
+                case 5:
+                    document.getElementById('invoiceSection').classList.add('active');
+                    generateInvoice();
+                    startCountdown();
+                    break;
+            }
+        }
+
+        // Update insurance step with current totals
+        function updateInsuranceStep() {
+            // Reset insurance selection if going back
+            if (currentStep === 2) {
+                selectedInsurance = null;
+                selectedCoverage = null;
+                document.getElementById('withoutInsurance').checked = true;
+                document.getElementById('insuranceSelection').style.display = 'none';
+                document.querySelectorAll('.insurance-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                document.getElementById('subOptionsContainer').style.display = 'none';
+                document.getElementById('insuranceCalculation').style.display = 'none';
+            }
+        }
+
+        // Update payment step with current total
+        function updatePaymentStep() {
+            // Update payment amount
+            document.getElementById('paymentAmount').textContent = 
+                `${orderData.totalAmount.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('authorizeAmount').textContent = 
+                `${orderData.totalAmount.toLocaleString('fr-FR')} CFA`;
+        }
+
+        // Update progress bar
+        function updateProgressBar() {
+            document.querySelectorAll('.progress-step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                
+                if (stepNum < currentStep) {
+                    step.classList.add('completed');
+                } else if (stepNum === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        // Process payment
+        function processPayment() {
+            showModal('loadingModal');
+            document.getElementById('loadingMessage').textContent = 
+                "Connexion à votre opérateur Mobile Money...";
+            
+            // Simulate payment processing
+            setTimeout(() => {
+                closeModal('loadingModal');
+                showModal('successModal');
+                
+                // Generate order ID
+                orderData.orderId = 'PHARM-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                orderData.paymentPhone = document.getElementById('paymentPhone').value;
+                orderData.paymentDate = new Date().toISOString();
+                
+                // Save order to session storage
+                sessionStorage.setItem('pharmacyOrder', JSON.stringify(orderData));
+
+                // Emit order to server so managers / coursiers / pharmaciens are notified
+                try {
+                    const socket = io();
+                    socket.emit('newOrder', Object.assign({}, orderData, { patient: patientData }));
+                } catch (e) {
+                    console.warn('Socket.IO not available (pharmacie):', e && e.message);
+                }
+                
+                // Move to invoice step after delay
+                setTimeout(() => {
+                    closeModal('successModal');
+                    currentStep = 5;
+                    showStep(5);
+                    updateProgressBar();
+                }, 2000);
+            }, 3000);
+        }
+
+        // Generate invoice
+        function generateInvoice() {
+            // Update invoice reference and date
+            document.getElementById('invoiceReference').textContent = orderData.orderId;
+            const now = new Date();
+            document.getElementById('invoiceDate').textContent = 
+                `${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+            
+            // Update patient info
+            const invoicePatientInfo = document.getElementById('invoicePatientInfo');
+            invoicePatientInfo.innerHTML = `
+                <h3 style="margin-bottom: 10px;">Patient</h3>
+                <p><strong>Nom:</strong> ${patientData.firstName} ${patientData.lastName}</p>
+                <p><strong>Téléphone:</strong> ${patientData.phone}</p>
+                <p><strong>Adresse:</strong> ${patientData.address}, ${patientData.city}</p>
+            `;
+            
+            // Update medications list
+            const invoiceMedicationsList = document.getElementById('invoiceMedicationsList');
+            invoiceMedicationsList.innerHTML = '';
+            selectedMedications.forEach(med => {
+                const totalPrice = med.price * med.quantity;
+                const item = document.createElement('div');
+                item.className = 'invoice-item';
+                item.innerHTML = `
+                    <span>${med.name} × ${med.quantity}</span>
+                    <span>${totalPrice.toLocaleString('fr-FR')} CFA</span>
+                `;
+                invoiceMedicationsList.appendChild(item);
+            });
+            
+            // Update totals
+            document.getElementById('invoiceMedicationsTotal').textContent = 
+                `${orderData.medicationsSubtotal.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('invoiceCoverage').textContent = 
+                `-${orderData.insuranceCoverage.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('invoiceRemaining').textContent = 
+                `Différence restante: ${orderData.remainingAmount.toLocaleString('fr-FR')} CFA`;
+            document.getElementById('invoiceTotalPaid').textContent = 
+                `${orderData.totalAmount.toLocaleString('fr-FR')} CFA`;
+            
+            // Generate QR code (simulated)
+            const qrCode = document.getElementById('qrCode');
+            qrCode.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">💊</div>
+                    <div style="font-size: 1.2rem; font-weight: 600;">${orderData.orderId}</div>
+                    <div style="font-size: 0.8rem; margin-top: 5px;">Livraison en 1 heure</div>
+                </div>
+            `;
+        }
+
+        // Start countdown timer (1 hour for pharmacy)
+        function startCountdown() {
+            let timeLeft = 60 * 60; // 1 hour in seconds
+            const timerElement = document.getElementById('countdownTimer');
+            
+            function updateTimer() {
+                if (timeLeft <= 0) {
+                    timerElement.textContent = "00:00:00";
+                    document.getElementById('orderStatus').textContent = "TEMPS ÉCOULÉ";
+                    return;
+                }
+                
+                const hours = Math.floor(timeLeft / 3600);
+                const minutes = Math.floor((timeLeft % 3600) / 60);
+                const seconds = timeLeft % 60;
+                
+                timerElement.textContent = 
+                    `${hours.toString().padStart(2, '0')}:` +
+                    `${minutes.toString().padStart(2, '0')}:` +
+                    `${seconds.toString().padStart(2, '0')}`;
+                
+                timeLeft--;
+                setTimeout(updateTimer, 1000);
+            }
+            
+            updateTimer();
+        }
+
+        // Track order function
+        function trackOrder() {
+            showToast("Fonctionnalité de suivi en cours de développement. Votre commande est en route!", 'info');
+        }
+
+        // Download invoice function
+        function downloadInvoice() {
+            showToast("Téléchargement de la facture...", 'info');
+            // In a real implementation, this would generate a PDF
+        }
+
+        // Show modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Show loading
+        function showLoading(message = 'Chargement...') {
+            document.getElementById('loadingMessage').textContent = message;
+            document.getElementById('loadingModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Hide loading
+        function hideLoading() {
+            document.getElementById('loadingModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Spinner animation
+        const style = document.createElement('style');
+        style.textContent = `
+            .spinner {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 3px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: var(--white);
+                animation: spin 1s ease-in-out infinite;
+            }
+            
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+</body>
+</html>

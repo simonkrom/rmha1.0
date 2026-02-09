@@ -1,0 +1,2737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Pharmacien - Conciergerie Médicale</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/toast.css" />
+    <style>
+        :root {
+            --primary: #10B981;
+            --primary-dark: #0DA271;
+            --secondary: #3B82F6;
+            --accent: #F59E0B;
+            --danger: #EF4444;
+            --light: #F9FAFB;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light-gray: #E5E7EB;
+            --white: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            background: url('../assets/images/background.png') center/cover fixed no-repeat, #F3F4F6;
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            color: var(--dark);
+            padding: 25px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 25px 25px;
+            border-bottom: 1px solid var(--light-gray);
+            margin-bottom: 25px;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .logo-img {
+            height: 48px;
+            width: auto;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .logo-img {
+                height: 40px;
+            }
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--dark);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .pharmacy-info {
+            padding: 0 25px 25px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .pharmacy-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .pharmacy-location {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+
+        .pharmacist-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pharmacist-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .pharmacist-details h3 {
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .pharmacist-details p {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .pharmacist-role {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .nav-menu {
+            padding: 0 25px;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: var(--gray);
+            text-decoration: none;
+            border-radius: var(--radius);
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+        }
+
+        .notification-badge {
+            background-color: var(--danger);
+            color: var(--white);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            min-width: 18px;
+            text-align: center;
+            margin-left: auto;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            <script src="/socket.io/socket.io.js"></script>
+            <script src="../assets/js/toast.js"></script>
+            <script>
+        }
+
+        /* Top Bar */
+        .top-bar {
+                        socket.on('newOrder', order => {
+                            console.log('pharmacien newOrder', order);
+                            render(order);
+                            showToast(`Nouvelle préparation: ${order.orderId || ''}`, 'info');
+                        });
+
+                        socket.on('orderPrepared', data => {
+                            console.log('orderPrepared', data);
+                            const card = document.querySelector(`#pharmacienOrders [data-order-id="${data.orderId}"]`);
+                            if (card) {
+                                const b = card.querySelector('button'); if (b) { b.disabled = true; b.textContent = 'Préparé'; }
+                            }
+                            showToast(`Commande préparée: ${data.orderId || ''}`, 'success');
+                        });
+            font-size: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notifications i {
+            font-size: 1.3rem;
+            color: var(--gray);
+        }
+
+        .logout-btn {
+            background-color: var(--light);
+            color: var(--dark);
+            border: none;
+            padding: 8px 20px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--light-gray);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .stat-icon.green {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+        }
+
+        .stat-icon.blue {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--secondary);
+        }
+
+        .stat-icon.orange {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--accent);
+        }
+
+        .stat-icon.red {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .stat-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .stat-info p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .stat-trend {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .trend-up {
+            color: var(--primary);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        /* Main Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Orders Section */
+        .orders-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            background-color: var(--light);
+            border: none;
+            border-radius: var(--radius);
+            color: var(--dark);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background-color: var(--light-gray);
+        }
+
+        .action-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .action-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Orders Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .orders-table thead {
+            background-color: var(--light);
+        }
+
+        .orders-table th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid var(--light-gray);
+            white-space: nowrap;
+        }
+
+        .orders-table tbody tr {
+            border-bottom: 1px solid var(--light-gray);
+            transition: background-color 0.3s;
+        }
+
+        .orders-table tbody tr:hover {
+            background-color: var(--light);
+        }
+
+        .orders-table td {
+            padding: 15px 20px;
+            vertical-align: middle;
+        }
+
+        .order-id {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .order-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-in-progress {
+            background-color: #DBEAFE;
+            color: var(--secondary);
+        }
+
+        .status-ready {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-cancelled {
+            background-color: #FEE2E2;
+            color: var(--danger);
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--light);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .action-icon:hover {
+            background-color: var(--light-gray);
+        }
+
+        .action-icon.view {
+            color: var(--primary);
+        }
+
+        .action-icon.process {
+            color: var(--secondary);
+        }
+
+        .action-icon.notify {
+            color: var(--accent);
+        }
+
+        /* Prescription Preview */
+        .prescription-preview {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .prescription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .prescription-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .prescription-images {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .image-container {
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            overflow: hidden;
+            background-color: var(--light);
+            height: 250px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .image-header {
+            background-color: var(--light);
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--light-gray);
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .image-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .image-placeholder {
+            text-align: center;
+            color: var(--gray);
+        }
+
+        .image-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--light-gray);
+        }
+
+        .prescription-medications {
+            background-color: var(--light);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .medication-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .medication-card {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 15px;
+            border: 1px solid var(--light-gray);
+            transition: transform 0.3s;
+        }
+
+        .medication-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .medication-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .medication-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .medication-quantity {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .medication-price {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Stock Alert */
+        .stock-alert {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--danger);
+            font-size: 1.2rem;
+        }
+
+        .alert-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-medication {
+            font-weight: 500;
+        }
+
+        .alert-stock {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        /* Recent Activity */
+        .activity-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.prescription {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+        }
+
+        .activity-icon.notification {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--secondary);
+        }
+
+        .activity-icon.stock {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--accent);
+        }
+
+        .activity-icon.alert {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        /* Medication Management Section */
+        .medications-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-top: 25px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .medications-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .medications-table thead {
+            background-color: var(--light);
+        }
+
+        .medications-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .medications-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .stock-level {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .stock-high {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+
+        .stock-medium {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+
+        .stock-low {
+            background-color: #FEE2E2;
+            color: var(--danger);
+        }
+
+        /* Notification Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .modal-btn.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .modal-btn.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        /* Message Template */
+        .message-template {
+            background-color: var(--light);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+        }
+
+        .template-text {
+            font-size: 1rem;
+            color: var(--dark);
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--light-gray);
+        }
+
+        .recipients-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .recipient-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--light-gray);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(16, 185, 129, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <script>
+    (function(){
+      const required = 'pharmacien';
+      const role = sessionStorage.getItem('userRole');
+      if (role !== required) {
+        showToast('Accès refusé — connectez-vous en tant que pharmacien', 'error');
+        window.location.href = 'index.html';
+        return;
+      }
+      const username = sessionStorage.getItem('username') || '';
+      window.addEventListener('DOMContentLoaded', function(){
+        const nameEl = document.getElementById('pharmacistName');
+        if (nameEl && username) nameEl.textContent = username;
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.addEventListener('click', function(){ sessionStorage.clear(); window.location.href='index.html'; });
+      });
+    })();
+    </script>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="../assets/images/Havre_Anine.png" alt="Le Havre d'Anine" class="logo-img">
+            <div class="logo-text">Pharmacie <span>Proximité</span></div>
+        </div>
+
+        <div class="pharmacy-info">
+            <div class="pharmacy-name">Pharmacie Centrale</div>
+            <div class="pharmacy-location">Libreville, Gabon</div>
+            <div class="pharmacist-profile">
+                <div class="pharmacist-avatar">SO</div>
+                <div class="pharmacist-details">
+                    <h3 id="pharmacistName">Dr. Sophie Okoue</h3>
+                    <p id="pharmacistEmail">pharmacien@conciergerie.ga</p>
+                    <div class="pharmacist-role">PHARMACIEN</div>
+                    <button id="logoutBtn" class="cta-button" style="display:block;margin-top:10px;background:transparent;color:#ef4444;border:1px solid #ef4444">Se déconnecter</button>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    <span>Tableau de bord</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#orders" class="nav-link" data-section="orders">
+                    <i class="fas fa-clipboard-list nav-icon"></i>
+                    <span>Commandes</span>
+                    <span class="notification-badge" id="ordersBadge">3</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#prescriptions" class="nav-link" data-section="prescriptions">
+                    <i class="fas fa-file-prescription nav-icon"></i>
+                    <span>Ordonnances</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#medications" class="nav-link" data-section="medications">
+                    <i class="fas fa-pills nav-icon"></i>
+                    <span>Gestion des stocks</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#notifications" class="nav-link" data-section="notifications">
+                    <i class="fas fa-bell nav-icon"></i>
+                    <span>Notifications</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#settings" class="nav-link" data-section="settings">
+                    <i class="fas fa-cog nav-icon"></i>
+                    <span>Paramètres</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Tableau de bord Pharmacien
+                </h1>
+            </div>
+            
+            <div class="top-bar-actions">
+                <div class="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">5</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Déconnexion
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="section-content fade-in">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-file-prescription"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalPrescriptions">24</h3>
+                        <p>Ordonnances traitées</p>
+                        <div class="stat-trend trend-up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>8% aujourd'hui</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="pendingOrders">3</h3>
+                        <p>Commandes en attente</p>
+                        <div class="stat-trend trend-up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>2 nouvelles</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="readyOrders">18</h3>
+                        <p>Préparées aujourd'hui</p>
+                        <div class="stat-trend trend-up">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>15% cette semaine</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="lowStock">7</h3>
+                        <p>Médicaments en rupture</p>
+                        <div class="stat-trend trend-down">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Attention requise</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Content -->
+            <div class="dashboard-grid">
+                <!-- Left Column: Orders and Prescriptions -->
+                <div>
+                    <!-- Pending Orders -->
+                    <div class="orders-section">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-clipboard-list"></i>
+                                Commandes en attente
+                            </h2>
+                            <div class="section-actions">
+                                <button class="action-btn" onclick="refreshOrders()">
+                                    <i class="fas fa-sync"></i>
+                                    Actualiser
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="orders-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID Commande</th>
+                                        <th>Patient</th>
+                                        <th>Heure</th>
+                                        <th>Assurance</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pendingOrdersTable">
+                                    <!-- Orders will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Current Prescription Preview -->
+                    <div class="prescription-preview" id="prescriptionPreview" style="display: none;">
+                        <div class="prescription-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-file-medical"></i>
+                                Ordonnance en cours
+                            </h2>
+                            <div class="section-actions">
+                                <button class="action-btn" onclick="closePrescription()">
+                                    <i class="fas fa-times"></i>
+                                    Fermer
+                                </button>
+                                <button class="action-btn primary" onclick="markAsReady()">
+                                    <i class="fas fa-check"></i>
+                                    Marquer comme prête
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="prescription-images">
+                            <div class="image-container">
+                                <div class="image-header">
+                                    <i class="fas fa-file-prescription"></i> Ordonnance
+                                </div>
+                                <div class="image-content">
+                                    <div class="image-placeholder">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <p>Prescription_CMD-124.pdf</p>
+                                        <p style="font-size: 0.9rem;">Scannée à 14:30</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="image-container">
+                                <div class="image-header">
+                                    <i class="fas fa-id-card"></i> Carte d'assurance
+                                </div>
+                                <div class="image-content">
+                                    <div class="image-placeholder">
+                                        <i class="fas fa-id-card"></i>
+                                        <p>CNAMGS_Carte_123456.jpg</p>
+                                        <p style="font-size: 0.9rem;">Couverture: 80%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="prescription-medications">
+                            <h3 style="margin-bottom: 15px;">Médicaments prescrits</h3>
+                            <div class="medication-list" id="currentMedications">
+                                <!-- Medications will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Alerts and Activity -->
+                <div>
+                    <!-- Stock Alerts -->
+                    <div class="stock-alert">
+                        <div class="alert-header">
+                            <div class="alert-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <h2 class="section-title">Alertes de stock</h2>
+                        </div>
+                        <div class="alert-list">
+                            <div class="alert-item">
+                                <span class="alert-medication">Paracétamol 500mg</span>
+                                <span class="alert-stock">Stock bas: 12 unités</span>
+                            </div>
+                            <div class="alert-item">
+                                <span class="alert-medication">Amoxicilline 1g</span>
+                                <span class="alert-stock">Stock bas: 8 unités</span>
+                            </div>
+                            <div class="alert-item">
+                                <span class="alert-medication">Ibuprofène 400mg</span>
+                                <span class="alert-stock">Rupture imminente</span>
+                            </div>
+                            <div class="alert-item">
+                                <span class="alert-medication">Metformine 850mg</span>
+                                <span class="alert-stock">Stock bas: 15 unités</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="activity-section" style="margin-top: 25px;">
+                        <h2 class="section-title">
+                            <i class="fas fa-stream"></i>
+                            Activité récente
+                        </h2>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon prescription">
+                                    <i class="fas fa-file-prescription"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        Nouvelle ordonnance pour <strong>Jean Dupont</strong>
+                                    </div>
+                                    <div class="activity-time">Il y a 15 minutes</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon notification">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        Notifications envoyées pour la commande <strong>#124</strong>
+                                    </div>
+                                    <div class="activity-time">Il y a 30 minutes</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon stock">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        Commande de stock reçue: 50 unités
+                                    </div>
+                                    <div class="activity-time">Il y a 2 heures</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon alert">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">
+                                        Alerte: Stock bas pour Amoxicilline
+                                    </div>
+                                    <div class="activity-time">Il y a 3 heures</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section (Hidden by default) -->
+        <div id="ordersSection" class="section-content hidden">
+            <div class="orders-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Toutes les commandes
+                    </h2>
+                    <div class="section-actions">
+                        <button class="action-btn" onclick="exportOrders()">
+                            <i class="fas fa-download"></i>
+                            Exporter
+                        </button>
+                        <button class="action-btn" onclick="filterOrders()">
+                            <i class="fas fa-filter"></i>
+                            Filtrer
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ID Commande</th>
+                                <th>Date</th>
+                                <th>Patient</th>
+                                <th>Assurance</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Coursier</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allOrdersTable">
+                            <!-- All orders will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescriptions Section (Hidden by default) -->
+        <div id="prescriptionsSection" class="section-content hidden">
+            <div class="orders-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-file-prescription"></i>
+                        Gestion des ordonnances
+                    </h2>
+                    <div class="section-actions">
+                        <button class="action-btn" onclick="searchPrescriptions()">
+                            <i class="fas fa-search"></i>
+                            Rechercher
+                        </button>
+                        <button class="action-btn primary" onclick="uploadPrescription()">
+                            <i class="fas fa-upload"></i>
+                            Uploader ordonnance
+                        </button>
+                    </div>
+                </div>
+                <div class="prescription-images" style="margin: 0;">
+                    <div class="image-container">
+                        <div class="image-header">
+                            Archives des ordonnances
+                        </div>
+                        <div class="image-content">
+                            <div class="image-placeholder">
+                                <i class="fas fa-archive"></i>
+                                <p>24 ordonnances ce mois</p>
+                                <p style="font-size: 0.9rem;">Taux de traitement: 95%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <div class="image-header">
+                            Statistiques
+                        </div>
+                        <div class="image-content">
+                            <div class="image-placeholder">
+                                <i class="fas fa-chart-pie"></i>
+                                <p>Moyenne: 3.2 médicaments/ordonnance</p>
+                                <p style="font-size: 0.9rem;">Temps moyen: 18 minutes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medications Management Section (Hidden by default) -->
+        <div id="medicationsSection" class="section-content hidden">
+            <div class="medications-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-pills"></i>
+                        Gestion des stocks
+                    </h2>
+                    <div class="section-actions">
+                        <button class="action-btn" onclick="exportStock()">
+                            <i class="fas fa-file-export"></i>
+                            Exporter stock
+                        </button>
+                        <button class="action-btn primary" onclick="addMedication()">
+                            <i class="fas fa-plus"></i>
+                            Ajouter médicament
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchMedication" placeholder="Rechercher un médicament...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+
+                <div class="table-container">
+                    <table class="medications-table">
+                        <thead>
+                            <tr>
+                                <th>Médicament</th>
+                                <th>Catégorie</th>
+                                <th>Stock</th>
+                                <th>Seuil alerte</th>
+                                <th>Prix unitaire</th>
+                                <th>Dernière commande</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="medicationsTable">
+                            <!-- Medications will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Section (Hidden by default) -->
+        <div id="notificationsSection" class="section-content hidden">
+            <div class="orders-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-bell"></i>
+                        Gestion des notifications
+                    </h2>
+                    <div class="section-actions">
+                        <button class="action-btn" onclick="markAllAsRead()">
+                            <i class="fas fa-check-double"></i>
+                            Tout marquer comme lu
+                        </button>
+                        <button class="action-btn primary" onclick="sendCustomNotification()">
+                            <i class="fas fa-paper-plane"></i>
+                            Envoyer notification
+                        </button>
+                    </div>
+                </div>
+                <div class="activity-list" style="max-height: 500px;">
+                    <!-- Notifications will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section (Hidden by default) -->
+        <div id="settingsSection" class="section-content hidden">
+            <div class="orders-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-cog"></i>
+                        Paramètres pharmacie
+                    </h2>
+                </div>
+                <div style="padding: 25px;">
+                    <h3 style="margin-bottom: 20px;">Configuration de la pharmacie</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div>
+                            <h4 style="margin-bottom: 15px;">Notifications automatiques</h4>
+                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" checked>
+                                    <span>Notifications commandes prêtes</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" checked>
+                                    <span>Alertes stock bas</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox">
+                                    <span>Rapports quotidiens</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom: 15px;">Message prédéfini</h4>
+                            <div style="margin-bottom: 15px;">
+                                <textarea style="width: 100%; padding: 10px; border: 2px solid var(--light-gray); border-radius: var(--radius); min-height: 100px;">Vos médicaments sont prêts. Le coursier arrivera dans les 30 minutes.</textarea>
+                            </div>
+                            <button class="action-btn primary">
+                                <i class="fas fa-save"></i>
+                                Enregistrer les modifications
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="modal" id="notificationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-paper-plane"></i>
+                    Envoyer notification
+                </h2>
+                <button class="close-modal" onclick="closeModal('notificationModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="message-template">
+                    <h3 style="margin-bottom: 10px;">Message prédéfini:</h3>
+                    <div class="template-text" id="templateMessage">
+                        Vos médicaments sont prêts. Le coursier arrivera dans les 30 minutes.
+                    </div>
+                </div>
+
+                <h3 style="margin: 20px 0 10px;">Destinataires:</h3>
+                <div class="recipients-list" id="recipientsList">
+                    <!-- Recipients will be populated by JavaScript -->
+                </div>
+
+                <div class="input-group" style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">
+                        Message personnalisé (optionnel):
+                    </label>
+                    <textarea style="width: 100%; padding: 12px; border: 2px solid var(--light-gray); border-radius: var(--radius); min-height: 100px;" id="customMessage"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('notificationModal')">
+                    Annuler
+                </button>
+                <button class="modal-btn primary" onclick="sendNotifications()">
+                    <i class="fas fa-paper-plane"></i>
+                    Envoyer les notifications
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div class="modal" id="orderDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-info-circle"></i>
+                    Détails de la commande
+                </h2>
+                <button class="close-modal" onclick="closeModal('orderDetailsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">ID Commande</div>
+                            <div style="font-weight: 600; color: var(--primary);" id="detailOrderId">CMD-124</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Patient</div>
+                            <div style="font-weight: 600;" id="detailPatient">Jean Dupont</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Téléphone</div>
+                            <div id="detailPhone">+241 01 23 45 67</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Date/Heure</div>
+                            <div id="detailDateTime">15/11/2024 14:30</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Assurance</div>
+                            <div id="detailInsurance">CNAMGS - GEF 80%</div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 0.9rem; color: var(--gray); margin-bottom: 5px;">Statut</div>
+                            <span class="order-status status-pending" id="detailStatus">En attente</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 20px 0 15px;">Médicaments:</h3>
+                <div style="background-color: var(--light); padding: 15px; border-radius: var(--radius);">
+                    <div id="detailMedications">
+                        <!-- Medications will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div style="background-color: var(--light); padding: 20px; border-radius: var(--radius); margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Total médicaments:</span>
+                        <span id="detailTotalMedications">10,500 CFA</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: var(--primary);">
+                        <span>Prise en charge assurance:</span>
+                        <span id="detailInsuranceCoverage">-8,400 CFA</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Frais de service:</span>
+                        <span>5 000 CFA</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; color: var(--primary); padding-top: 10px; border-top: 2px solid var(--light-gray);">
+                        <span>Total patient:</span>
+                        <span id="detailTotalPatient">7,100 CFA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('orderDetailsModal')">
+                    Fermer
+                </button>
+                <button class="modal-btn primary" onclick="processOrder()">
+                    <i class="fas fa-cogs"></i>
+                    Traiter cette commande
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal" id="loadingModal">
+        <div class="modal-content" style="text-align: center;">
+            <div style="margin: 20px 0;">
+                <div class="spinner" style="margin: 0 auto; width: 50px; height: 50px; border-width: 5px;"></div>
+            </div>
+            <h2 class="modal-title" id="loadingTitle">Chargement...</h2>
+            <p id="loadingMessage">Veuillez patienter</p>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const ordersData = [
+            {
+                id: "CMD-124",
+                date: "15/11/2024 14:30",
+                patient: "Jean Dupont",
+                phone: "+241 01 23 45 67",
+                insurance: "CNAMGS - GEF 80%",
+                status: "pending",
+                statusText: "En attente",
+                amount: "7,100 CFA",
+                courier: "À assigner",
+                medications: [
+                    { name: "Paracétamol 500mg", quantity: 2, price: "2,500 CFA" },
+                    { name: "Amoxicilline 1g", quantity: 1, price: "4,800 CFA" },
+                    { name: "Ibuprofène 400mg", quantity: 1, price: "3,200 CFA" }
+                ],
+                totalMedications: "10,500 CFA",
+                insuranceCoverage: "8,400 CFA",
+                totalPatient: "7,100 CFA"
+            },
+            {
+                id: "CMD-126",
+                date: "15/11/2024 13:45",
+                patient: "Marie Okouma",
+                phone: "+241 04 56 78 90",
+                insurance: "ASCOMA 100%",
+                status: "in-progress",
+                statusText: "En préparation",
+                amount: "8,400 CFA",
+                courier: "K. Mba",
+                medications: [
+                    { name: "Metformine 850mg", quantity: 1, price: "4,500 CFA" },
+                    { name: "Amlodipine 10mg", quantity: 1, price: "5,200 CFA" }
+                ],
+                totalMedications: "9,700 CFA",
+                insuranceCoverage: "9,700 CFA",
+                totalPatient: "5,000 CFA"
+            },
+            {
+                id: "CMD-128",
+                date: "15/11/2024 12:20",
+                patient: "Pierre Mba",
+                phone: "+241 05 67 89 01",
+                insurance: "Sans assurance",
+                status: "ready",
+                statusText: "Prête",
+                amount: "15,000 CFA",
+                courier: "A. Nzeng",
+                medications: [
+                    { name: "Omeprazole 20mg", quantity: 1, price: "3,800 CFA" },
+                    { name: "Losartan 50mg", quantity: 1, price: "5,500 CFA" },
+                    { name: "Atorvastatine 20mg", quantity: 1, price: "6,200 CFA" }
+                ],
+                totalMedications: "15,500 CFA",
+                insuranceCoverage: "0 CFA",
+                totalPatient: "20,500 CFA"
+            },
+            {
+                id: "CMD-130",
+                date: "14/11/2024 18:15",
+                patient: "Sophie Ndong",
+                phone: "+241 07 89 12 34",
+                insurance: "GABON ASSURANCES 70%",
+                status: "cancelled",
+                statusText: "Annulée",
+                amount: "12,500 CFA",
+                courier: "--",
+                medications: [
+                    { name: "Salbutamol Spray", quantity: 1, price: "8,500 CFA" }
+                ],
+                totalMedications: "8,500 CFA",
+                insuranceCoverage: "5,950 CFA",
+                totalPatient: "7,550 CFA"
+            }
+        ];
+
+        const medicationsData = [
+            {
+                id: 1,
+                name: "Paracétamol 500mg",
+                category: "Antalgique",
+                stock: 12,
+                alertThreshold: 20,
+                price: "2,500 CFA",
+                lastOrder: "10/11/2024",
+                status: "low"
+            },
+            {
+                id: 2,
+                name: "Amoxicilline 1g",
+                category: "Antibiotique",
+                stock: 8,
+                alertThreshold: 15,
+                price: "4,800 CFA",
+                lastOrder: "12/11/2024",
+                status: "low"
+            },
+            {
+                id: 3,
+                name: "Ibuprofène 400mg",
+                category: "Anti-inflammatoire",
+                stock: 5,
+                alertThreshold: 10,
+                price: "3,200 CFA",
+                lastOrder: "08/11/2024",
+                status: "low"
+            },
+            {
+                id: 4,
+                name: "Metformine 850mg",
+                category: "Antidiabétique",
+                stock: 15,
+                alertThreshold: 20,
+                price: "4,500 CFA",
+                lastOrder: "14/11/2024",
+                status: "medium"
+            },
+            {
+                id: 5,
+                name: "Amlodipine 10mg",
+                category: "Antihypertenseur",
+                stock: 22,
+                alertThreshold: 25,
+                price: "5,200 CFA",
+                lastOrder: "13/11/2024",
+                status: "medium"
+            },
+            {
+                id: 6,
+                name: "Omeprazole 20mg",
+                category: "Anti-ulcéreux",
+                stock: 35,
+                alertThreshold: 30,
+                price: "3,800 CFA",
+                lastOrder: "05/11/2024",
+                status: "high"
+            },
+            {
+                id: 7,
+                name: "Losartan 50mg",
+                category: "Antihypertenseur",
+                stock: 18,
+                alertThreshold: 20,
+                price: "5,500 CFA",
+                lastOrder: "11/11/2024",
+                status: "medium"
+            },
+            {
+                id: 8,
+                name: "Atorvastatine 20mg",
+                category: "Hypolipémiant",
+                stock: 28,
+                alertThreshold: 25,
+                price: "6,200 CFA",
+                lastOrder: "09/11/2024",
+                status: "high"
+            }
+        ];
+
+        const notificationsData = [
+            {
+                id: 1,
+                type: "order",
+                title: "Nouvelle commande",
+                message: "Commande #134 reçue pour Paul Okouma",
+                time: "Il y a 5 minutes",
+                read: false
+            },
+            {
+                id: 2,
+                type: "stock",
+                title: "Stock bas",
+                message: "Paracétamol 500mg: seulement 12 unités restantes",
+                time: "Il y a 1 heure",
+                read: false
+            },
+            {
+                id: 3,
+                type: "reminder",
+                title: "Rappel de commande",
+                message: "Commande #126 en attente depuis 45 minutes",
+                time: "Il y a 2 heures",
+                read: true
+            },
+            {
+                id: 4,
+                type: "system",
+                title: "Mise à jour système",
+                message: "Nouvelle version de l'interface disponible",
+                time: "Il y a 1 jour",
+                read: true
+            }
+        ];
+
+        // Global variables
+        let currentSection = 'dashboard';
+        let currentOrder = null;
+        let notificationRecipients = [];
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNavigation();
+            populatePendingOrders();
+            populateAllOrders();
+            populateMedications();
+            populateNotifications();
+            setupEventListeners();
+            updateStatsCounters();
+        });
+
+        // Initialize navigation
+        function initializeNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Show corresponding section
+                    const section = this.dataset.section;
+                    showSection(section);
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth <= 1024) {
+                        document.getElementById('sidebar').classList.remove('active');
+                    }
+                });
+            });
+            
+            // Menu toggle for mobile
+            document.getElementById('menuToggle').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('active');
+            });
+        }
+
+        // Show specific section
+        function showSection(section) {
+            currentSection = section;
+            
+            // Hide all sections
+            document.querySelectorAll('.section-content').forEach(sec => {
+                sec.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(`${section}Section`).classList.remove('hidden');
+            
+            // Update page title
+            const titles = {
+                'dashboard': 'Tableau de bord Pharmacien',
+                'orders': 'Gestion des Commandes',
+                'prescriptions': 'Gestion des Ordonnances',
+                'medications': 'Gestion des Stocks',
+                'notifications': 'Notifications',
+                'settings': 'Paramètres de la pharmacie'
+            };
+            
+            document.querySelector('.page-title').innerHTML = `
+                <i class="fas fa-${getSectionIcon(section)}"></i>
+                ${titles[section]}
+            `;
+        }
+
+        // Get icon for section
+        function getSectionIcon(section) {
+            const icons = {
+                'dashboard': 'tachometer-alt',
+                'orders': 'clipboard-list',
+                'prescriptions': 'file-prescription',
+                'medications': 'pills',
+                'notifications': 'bell',
+                'settings': 'cog'
+            };
+            return icons[section] || 'tachometer-alt';
+        }
+
+        // Populate pending orders table
+        function populatePendingOrders() {
+            const tableBody = document.getElementById('pendingOrdersTable');
+            tableBody.innerHTML = '';
+            
+            const pendingOrders = ordersData.filter(order => order.status === 'pending' || order.status === 'in-progress');
+            
+            pendingOrders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <span class="order-id">${order.id}</span>
+                    </td>
+                    <td>${order.patient}</td>
+                    <td>${order.date.split(' ')[1]}</td>
+                    <td>${order.insurance}</td>
+                    <td>
+                        <span class="order-status status-${order.status}">${order.statusText}</span>
+                    </td>
+                    <td>
+                        <div class="order-actions">
+                            <button class="action-icon view" onclick="viewOrderDetails('${order.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-icon process" onclick="processOrderFromTable('${order.id}')">
+                                <i class="fas fa-cogs"></i>
+                            </button>
+                            <button class="action-icon notify" onclick="showNotificationModal('${order.id}')">
+                                <i class="fas fa-bell"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Update badge count
+            document.getElementById('ordersBadge').textContent = pendingOrders.length;
+        }
+
+        // Populate all orders table
+        function populateAllOrders() {
+            const tableBody = document.getElementById('allOrdersTable');
+            tableBody.innerHTML = '';
+            
+            ordersData.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.date}</td>
+                    <td>${order.patient}</td>
+                    <td>${order.insurance}</td>
+                    <td>${order.amount}</td>
+                    <td>
+                        <span class="order-status status-${order.status}">${order.statusText}</span>
+                    </td>
+                    <td>${order.courier}</td>
+                    <td>
+                        <div class="order-actions">
+                            <button class="action-icon view" onclick="viewOrderDetails('${order.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Populate medications table
+        function populateMedications() {
+            const tableBody = document.getElementById('medicationsTable');
+            tableBody.innerHTML = '';
+            
+            medicationsData.forEach(med => {
+                const stockClass = `stock-${med.status}`;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight: 600;">${med.name}</div>
+                        <div style="font-size: 0.85rem; color: var(--gray);">ID: MED-${med.id.toString().padStart(3, '0')}</div>
+                    </td>
+                    <td>${med.category}</td>
+                    <td>
+                        <span class="stock-level ${stockClass}">${med.stock} unités</span>
+                    </td>
+                    <td>${med.alertThreshold} unités</td>
+                    <td>${med.price}</td>
+                    <td>${med.lastOrder}</td>
+                    <td>
+                        <div class="order-actions">
+                            <button class="action-icon view" onclick="viewMedication(${med.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-icon process" onclick="reorderMedication(${med.id})">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Populate notifications
+        function populateNotifications() {
+            const notificationsList = document.querySelector('#notificationsSection .activity-list');
+            notificationsList.innerHTML = '';
+            
+            notificationsData.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = 'activity-item';
+                notificationItem.style.opacity = notification.read ? '0.7' : '1';
+                
+                const iconClass = notification.type === 'order' ? 'file-prescription' :
+                                 notification.type === 'stock' ? 'exclamation-triangle' :
+                                 notification.type === 'reminder' ? 'clock' : 'info-circle';
+                
+                notificationItem.innerHTML = `
+                    <div class="activity-icon ${notification.type}">
+                        <i class="fas fa-${iconClass}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">
+                            <strong>${notification.title}</strong><br>
+                            ${notification.message}
+                        </div>
+                        <div class="activity-time">${notification.time}</div>
+                    </div>
+                    ${!notification.read ? '<div style="width: 10px; height: 10px; background-color: var(--primary); border-radius: 50%; flex-shrink: 0;"></div>' : ''}
+                `;
+                
+                notificationItem.addEventListener('click', () => markNotificationAsRead(notification.id));
+                notificationsList.appendChild(notificationItem);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 1024) {
+                    document.getElementById('sidebar').classList.remove('active');
+                }
+            });
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                const menuToggle = document.getElementById('menuToggle');
+                
+                if (window.innerWidth <= 1024 && 
+                    sidebar.classList.contains('active') && 
+                    !sidebar.contains(e.target) && 
+                    !menuToggle.contains(e.target)) {
+                    sidebar.classList.remove('active');
+                }
+            });
+            
+            // Search medication
+            document.getElementById('searchMedication').addEventListener('input', function() {
+                searchMedications(this.value);
+            });
+        }
+
+        // View order details
+        function viewOrderDetails(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+            
+            currentOrder = order;
+            
+            // Populate modal
+            document.getElementById('detailOrderId').textContent = order.id;
+            document.getElementById('detailPatient').textContent = order.patient;
+            document.getElementById('detailPhone').textContent = order.phone;
+            document.getElementById('detailDateTime').textContent = order.date;
+            document.getElementById('detailInsurance').textContent = order.insurance;
+            document.getElementById('detailStatus').textContent = order.statusText;
+            document.getElementById('detailTotalMedications').textContent = order.totalMedications;
+            document.getElementById('detailInsuranceCoverage').textContent = `-${order.insuranceCoverage}`;
+            document.getElementById('detailTotalPatient').textContent = order.totalPatient;
+            
+            // Update status class
+            const statusEl = document.getElementById('detailStatus');
+            statusEl.className = 'order-status';
+            statusEl.classList.add(`status-${order.status}`);
+            
+            // Populate medications
+            const medicationsList = document.getElementById('detailMedications');
+            medicationsList.innerHTML = '';
+            
+            order.medications.forEach(med => {
+                const medItem = document.createElement('div');
+                medItem.style.cssText = 'display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.1);';
+                medItem.innerHTML = `
+                    <span>${med.name} × ${med.quantity}</span>
+                    <span>${med.price}</span>
+                `;
+                medicationsList.appendChild(medItem);
+            });
+            
+            showModal('orderDetailsModal');
+        }
+
+        // Process order from table
+        function processOrderFromTable(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+            
+            currentOrder = order;
+            
+            // Show prescription preview
+            showPrescriptionPreview(order);
+            
+            // Scroll to prescription preview
+            document.getElementById('prescriptionPreview').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Process order from modal
+        function processOrder() {
+            if (!currentOrder) return;
+            
+            closeModal('orderDetailsModal');
+            showPrescriptionPreview(currentOrder);
+            
+            // Scroll to prescription preview
+            document.getElementById('prescriptionPreview').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Show prescription preview
+        function showPrescriptionPreview(order) {
+            // Update prescription preview
+            const previewSection = document.getElementById('prescriptionPreview');
+            previewSection.style.display = 'block';
+            
+            // Populate medications
+            const medicationsList = document.getElementById('currentMedications');
+            medicationsList.innerHTML = '';
+            
+            order.medications.forEach(med => {
+                const medCard = document.createElement('div');
+                medCard.className = 'medication-card';
+                medCard.innerHTML = `
+                    <div class="medication-name">${med.name}</div>
+                    <div style="font-size: 0.9rem; color: var(--gray);">${getMedicationCategory(med.name)}</div>
+                    <div class="medication-details">
+                        <span class="medication-quantity">Quantité: ${med.quantity}</span>
+                        <span class="medication-price">${med.price}</span>
+                    </div>
+                `;
+                medicationsList.appendChild(medCard);
+            });
+            
+            // Update order status to in-progress
+            const orderIndex = ordersData.findIndex(o => o.id === order.id);
+            if (orderIndex !== -1 && ordersData[orderIndex].status === 'pending') {
+                ordersData[orderIndex].status = 'in-progress';
+                ordersData[orderIndex].statusText = 'En préparation';
+                populatePendingOrders();
+                updateStatsCounters();
+            }
+        }
+
+        // Get medication category by name
+        function getMedicationCategory(name) {
+            const med = medicationsData.find(m => m.name === name);
+            return med ? med.category : 'Non catégorisé';
+        }
+
+        // Close prescription preview
+        function closePrescription() {
+            document.getElementById('prescriptionPreview').style.display = 'none';
+            currentOrder = null;
+        }
+
+        // Mark order as ready
+        function markAsReady() {
+            if (!currentOrder) return;
+            
+            // Update order status
+            const orderIndex = ordersData.findIndex(o => o.id === currentOrder.id);
+            if (orderIndex !== -1) {
+                ordersData[orderIndex].status = 'ready';
+                ordersData[orderIndex].statusText = 'Prête';
+                ordersData[orderIndex].courier = 'À assigner';
+                
+                // Show notification modal
+                showNotificationModal(currentOrder.id);
+                
+                // Update UI
+                populatePendingOrders();
+                populateAllOrders();
+                updateStatsCounters();
+                
+                // Close prescription preview
+                closePrescription();
+                
+                showNotification(`Commande ${currentOrder.id} marquée comme prête`, "success");
+            }
+        }
+
+        // Show notification modal
+        function showNotificationModal(orderId) {
+            const order = ordersData.find(o => o.id === orderId);
+            if (!order) return;
+            
+            currentOrder = order;
+            
+            // Populate recipients list
+            const recipientsList = document.getElementById('recipientsList');
+            recipientsList.innerHTML = '';
+            
+            // Add manager and courier as recipients
+            notificationRecipients = [
+                { type: 'manager', name: 'Manager', phone: '+241 XX XX XX XX' },
+                { type: 'courier', name: 'Coursier', phone: order.courier === 'À assigner' ? 'À assigner' : order.courier }
+            ];
+            
+            notificationRecipients.forEach(recipient => {
+                const recipientItem = document.createElement('div');
+                recipientItem.className = 'recipient-item';
+                recipientItem.innerHTML = `
+                    <input type="checkbox" checked data-type="${recipient.type}">
+                    <i class="fas fa-${recipient.type === 'manager' ? 'user-tie' : 'motorcycle'}"></i>
+                    <span style="flex: 1;">${recipient.name}</span>
+                    <span style="font-size: 0.9rem; color: var(--gray);">${recipient.phone}</span>
+                `;
+                recipientsList.appendChild(recipientItem);
+            });
+            
+            // Update template message
+            document.getElementById('templateMessage').textContent = 
+                `Les médicaments de la commande ${order.id} sont prêts pour ${order.patient}.`;
+            
+            showModal('notificationModal');
+        }
+
+        // Send notifications
+        function sendNotifications() {
+            if (!currentOrder) return;
+            
+            const customMessage = document.getElementById('customMessage').value.trim();
+            const message = customMessage || document.getElementById('templateMessage').textContent;
+            
+            // Get selected recipients
+            const selectedRecipients = [];
+            document.querySelectorAll('#recipientsList input[type="checkbox"]:checked').forEach(checkbox => {
+                const type = checkbox.dataset.type;
+                const recipient = notificationRecipients.find(r => r.type === type);
+                if (recipient) {
+                    selectedRecipients.push(recipient);
+                }
+            });
+            
+            if (selectedRecipients.length === 0) {
+                showNotification("Veuillez sélectionner au moins un destinataire", "warning");
+                return;
+            }
+            
+            showLoading("Envoi des notifications...");
+            
+            // Simulate sending notifications
+            setTimeout(() => {
+                hideLoading();
+                closeModal('notificationModal');
+                
+                // Log the notification
+                const newNotification = {
+                    id: notificationsData.length + 1,
+                    type: "notification",
+                    title: "Notifications envoyées",
+                    message: `Message envoyé à ${selectedRecipients.length} destinataire(s) pour la commande ${currentOrder.id}`,
+                    time: "À l'instant",
+                    read: false
+                };
+                
+                notificationsData.unshift(newNotification);
+                populateNotifications();
+                
+                showNotification(`Notifications envoyées à ${selectedRecipients.length} destinataire(s)`, "success");
+                
+                // Reset current order
+                currentOrder = null;
+            }, 2000);
+        }
+
+        // View medication details
+        function viewMedication(medicationId) {
+            const medication = medicationsData.find(m => m.id === medicationId);
+            if (!medication) return;
+            
+            showToast(`Détails: ${medication.name} — ${medication.category} — Stock: ${medication.stock}`, 'info');
+        }
+
+        // Reorder medication
+        function reorderMedication(medicationId) {
+            const medication = medicationsData.find(m => m.id === medicationId);
+            if (!medication) return;
+            
+            const quantity = prompt(`Quantité à commander pour ${medication.name} (stock actuel: ${medication.stock}):`, "50");
+            
+            if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
+                showLoading(`Commande de ${quantity} unités de ${medication.name}...`);
+                
+                setTimeout(() => {
+                    hideLoading();
+                    showNotification(`Commande de ${quantity} unités de ${medication.name} passée avec succès`, "success");
+                    
+                    // Update medication stock
+                    medication.stock += parseInt(quantity);
+                    medication.lastOrder = new Date().toLocaleDateString('fr-FR');
+                    
+                    // Update status based on new stock
+                    if (medication.stock >= medication.alertThreshold * 1.5) {
+                        medication.status = "high";
+                    } else if (medication.stock >= medication.alertThreshold) {
+                        medication.status = "medium";
+                    } else {
+                        medication.status = "low";
+                    }
+                    
+                    populateMedications();
+                    updateStatsCounters();
+                }, 1500);
+            }
+        }
+
+        // Search medications
+        function searchMedications(query) {
+            const filteredMedications = medicationsData.filter(med => 
+                med.name.toLowerCase().includes(query.toLowerCase()) ||
+                med.category.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            const tableBody = document.getElementById('medicationsTable');
+            tableBody.innerHTML = '';
+            
+            filteredMedications.forEach(med => {
+                const stockClass = `stock-${med.status}`;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight: 600;">${med.name}</div>
+                        <div style="font-size: 0.85rem; color: var(--gray);">ID: MED-${med.id.toString().padStart(3, '0')}</div>
+                    </td>
+                    <td>${med.category}</td>
+                    <td>
+                        <span class="stock-level ${stockClass}">${med.stock} unités</span>
+                    </td>
+                    <td>${med.alertThreshold} unités</td>
+                    <td>${med.price}</td>
+                    <td>${med.lastOrder}</td>
+                    <td>
+                        <div class="order-actions">
+                            <button class="action-icon view" onclick="viewMedication(${med.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-icon process" onclick="reorderMedication(${med.id})">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Mark notification as read
+        function markNotificationAsRead(notificationId) {
+            const notification = notificationsData.find(n => n.id === notificationId);
+            if (notification && !notification.read) {
+                notification.read = true;
+                populateNotifications();
+            }
+        }
+
+        // Mark all notifications as read
+        function markAllAsRead() {
+            notificationsData.forEach(notification => notification.read = true);
+            populateNotifications();
+            showNotification("Toutes les notifications ont été marquées comme lues", "success");
+        }
+
+        // Send custom notification
+        function sendCustomNotification() {
+            showToast("Fonction d'envoi de notification personnalisée - À implémenter", 'info');
+        }
+
+        // Refresh orders
+        function refreshOrders() {
+            showLoading("Actualisation des commandes...");
+            setTimeout(() => {
+                hideLoading();
+                // Simulate new order
+                const newOrder = {
+                    id: `CMD-${Date.now().toString().slice(-6)}`,
+                    date: new Date().toLocaleDateString('fr-FR') + ' ' + new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+                    patient: "Nouveau Patient",
+                    phone: "+241 00 00 00 00",
+                    insurance: "CNAMGS - Secteur Public 60%",
+                    status: "pending",
+                    statusText: "En attente",
+                    amount: "9,500 CFA",
+                    courier: "À assigner",
+                    medications: [
+                        { name: "Paracétamol 500mg", quantity: 1, price: "2,500 CFA" },
+                        { name: "Omeprazole 20mg", quantity: 1, price: "3,800 CFA" }
+                    ],
+                    totalMedications: "6,300 CFA",
+                    insuranceCoverage: "3,780 CFA",
+                    totalPatient: "7,520 CFA"
+                };
+                
+                ordersData.unshift(newOrder);
+                populatePendingOrders();
+                populateAllOrders();
+                updateStatsCounters();
+                
+                showNotification("1 nouvelle commande disponible", "success");
+            }, 1000);
+        }
+
+        // Export orders
+        function exportOrders() {
+            showLoading("Exportation des commandes...");
+            setTimeout(() => {
+                hideLoading();
+                showToast("Commandes exportées avec succès - Fichier CSV généré", 'success');
+            }, 1500);
+        }
+
+        // Filter orders
+        function filterOrders() {
+            showToast("Fonction de filtrage des commandes - À implémenter", 'info');
+        }
+
+        // Search prescriptions
+        function searchPrescriptions() {
+            showToast("Fonction de recherche d'ordonnances - À implémenter", 'info');
+        }
+
+        // Upload prescription
+        function uploadPrescription() {
+            showToast("Fonction d'upload d'ordonnance - À implémenter", 'info');
+        }
+
+        // Export stock
+        function exportStock() {
+            showLoading("Exportation du stock...");
+            setTimeout(() => {
+                hideLoading();
+                showToast("Stock exporté avec succès - Fichier Excel généré", 'success');
+            }, 1500);
+        }
+
+        // Add medication
+        function addMedication() {
+            showToast("Fonction d'ajout de médicament - À implémenter", 'info');
+        }
+
+        // Update stats counters
+        function updateStatsCounters() {
+            const totalPrescriptions = ordersData.length;
+            const pendingOrders = ordersData.filter(o => o.status === 'pending').length;
+            const readyOrders = ordersData.filter(o => o.status === 'ready').length;
+            const lowStock = medicationsData.filter(m => m.status === 'low').length;
+            
+            document.getElementById('totalPrescriptions').textContent = totalPrescriptions;
+            document.getElementById('pendingOrders').textContent = pendingOrders;
+            document.getElementById('readyOrders').textContent = readyOrders;
+            document.getElementById('lowStock').textContent = lowStock;
+        }
+
+        // Show notification
+        function showNotification(message, type = "success") {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: ${type === 'error' ? '#FEE2E2' : type === 'warning' ? '#FEF3C7' : '#D1FAE5'};
+                color: ${type === 'error' ? '#991B1B' : type === 'warning' ? '#92400E' : '#065F46'};
+                padding: 15px 20px;
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                z-index: 1001;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            const icon = type === 'error' ? 'fa-exclamation-circle' : 
+                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            
+            notification.innerHTML = `
+                <i class="fas ${icon}" style="font-size: 1.2rem;"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 5000);
+            
+            // Add animation styles
+            if (!document.querySelector('#notificationStyles')) {
+                const style = document.createElement('style');
+                style.id = 'notificationStyles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // Show modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Show loading
+        function showLoading(message = "Chargement...") {
+            document.getElementById('loadingTitle').textContent = message;
+            document.getElementById('loadingModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Hide loading
+        function hideLoading() {
+            document.getElementById('loadingModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Logout
+        function logout() {
+            if (confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
+                showLoading("Déconnexion en cours...");
+                setTimeout(() => {
+                    hideLoading();
+                    showToast("Déconnexion réussie", 'success');
+                    // In a real app, you would redirect to login page
+                    window.location.href = 'index.html';
+                }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    (function(){
+        try {
+            const socket = io();
+            socket.emit('join','pharmacien');
+
+            function ensureContainer() {
+                let c = document.getElementById('pharmacienOrders');
+                if (!c) {
+                    c = document.createElement('div');
+                    c.id = 'pharmacienOrders';
+                    c.style.position = 'fixed';
+                    c.style.right = '12px';
+                    c.style.top = '80px';
+                    c.style.width = '360px';
+                    c.style.maxHeight = '70vh';
+                    c.style.overflow = 'auto';
+                    document.body.appendChild(c);
+                }
+                return c;
+            }
+
+            function render(order) {
+                const container = ensureContainer();
+                const card = document.createElement('div');
+                card.style.background = '#fff';
+                card.style.border = '1px solid #e5e7eb';
+                card.style.padding = '12px';
+                card.style.marginBottom = '8px';
+                card.dataset.orderId = order.orderId || order.patientId || '';
+
+                card.innerHTML = `<div style="font-weight:700">${card.dataset.orderId}</div><div style="font-size:0.9rem">${order.patient ? (order.patient.firstName + ' ' + order.patient.lastName) : ''} • ${order.patient ? order.patient.phone : ''}</div>`;
+
+                const btn = document.createElement('button');
+                btn.textContent = 'Préparer';
+                btn.className = 'action-btn primary';
+                btn.style.marginTop = '8px';
+                btn.onclick = () => {
+                    const payload = { orderId: card.dataset.orderId, preparedBy: 'pharmacien', timestamp: new Date().toISOString() };
+                    socket.emit('orderPrepared', payload);
+                    btn.disabled = true; btn.textContent = 'Préparé';
+                };
+
+                card.appendChild(btn);
+                container.prepend(card);
+            }
+
+            socket.on('newOrder', order => {
+                console.log('pharmacien newOrder', order);
+                render(order);
+            });
+
+            socket.on('orderPrepared', data => {
+                console.log('orderPrepared', data);
+                const card = document.querySelector(`#pharmacienOrders [data-order-id="${data.orderId}"]`);
+                if (card) {
+                    const b = card.querySelector('button'); if (b) { b.disabled = true; b.textContent = 'Préparé'; }
+                }
+            });
+
+        } catch (e) { console.warn('Socket.IO not available (pharmacien):', e && e.message); }
+    })();
+</script>

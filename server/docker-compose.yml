@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: lab_user
+      POSTGRES_PASSWORD: lab_pass
+      POSTGRES_DB: laboratoire
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  app:
+    build: .
+    environment:
+      - DATABASE_URL=postgres://lab_user:lab_pass@db:5432/laboratoire
+      - JWT_SECRET=please-change-me
+      - PORT=4000
+    ports:
+      - '4000:4000'
+    depends_on:
+      - db
+
+volumes:
+  db-data:

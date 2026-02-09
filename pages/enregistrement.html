@@ -1,0 +1,1257 @@
+ <!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enregistrement Patient - Conciergerie Médicale</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="../assets/css/toast.css" />
+    <style>
+        :root {
+            --primary: #2563EB;
+            --primary-dark: #1D4ED8;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --light: #F9FAFB;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light-gray: #E5E7EB;
+            --white: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            background: url('../assets/images/background.png') center/cover fixed no-repeat, var(--white);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 2rem;
+        }
+
+        .logo-img {
+            height: 48px;
+            width: auto;
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .logo-img {
+                height: 40px;
+            }
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .logo-text span {
+            color: var(--secondary);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-icons a {
+            color: var(--dark);
+            font-size: 1.2rem;
+            text-decoration: none;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 30px 0;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .page-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            color: var(--dark);
+            flex-grow: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            padding-bottom: 50px;
+        }
+
+        /* Patient Type Selection */
+        .patient-type-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .type-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .type-option {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .type-option input {
+            display: none;
+        }
+
+        .type-label {
+            display: block;
+            padding: 20px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .type-label:hover {
+            border-color: var(--primary);
+        }
+
+        .type-option input:checked + .type-label {
+            border-color: var(--primary);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+
+        .type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .type-name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        /* Form Sections */
+        .form-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-label.required::after {
+            content: " *";
+            color: #EF4444;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-input.select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236B7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .phone-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .country-code {
+            flex: 0 0 100px;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            background-color: var(--light);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .phone-number {
+            flex: 1;
+        }
+
+        /* GPS Section */
+        .gps-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .gps-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .gps-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #map {
+            height: 300px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            border: 2px solid var(--light-gray);
+        }
+
+        .gps-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .gps-button {
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .gps-button:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .gps-button.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        .location-display {
+            background-color: var(--light);
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-top: 15px;
+            display: none;
+        }
+
+        .location-display.active {
+            display: block;
+        }
+
+        .location-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .location-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .location-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .location-value {
+            font-weight: 500;
+        }
+
+        /* Services Selection */
+        .services-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .service-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .service-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .service-option:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .service-option input:checked + .service-content {
+            border-color: var(--primary);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+
+        .service-option input {
+            display: none;
+        }
+
+        .service-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius);
+            transition: all 0.3s;
+        }
+
+        .service-icon {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .service-info h4 {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .service-info p {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        /* Terms */
+        .terms-section {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .terms-content {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .checkbox-group input {
+            margin-top: 5px;
+        }
+
+        .checkbox-group label {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .checkbox-group a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .checkbox-group a:hover {
+            text-decoration: underline;
+        }
+
+        /* Submit Section */
+        .submit-section {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .submit-button {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 15px 40px;
+            border-radius: var(--radius);
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .submit-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .submit-button:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: var(--radius);
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .modal-message {
+            margin-bottom: 25px;
+            color: var(--gray);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .modal-button.primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .modal-button.secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .service-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .main-content {
+                grid-template-columns: 2fr 1fr;
+            }
+            
+            .gps-section {
+                grid-column: 1 / -1;
+            }
+        }
+
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <img src="../assets/images/Havre_Anine.png" alt="Le Havre d'Anine" class="logo-img">
+                    <div class="logo-text">Conciergerie <span>Médicale</span></div>
+                </a>
+                
+                <div class="nav-icons">
+                    <a href="index.html" title="Accueil">
+                        <i class="fas fa-home"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="page-header fade-in">
+            <button class="back-button" onclick="window.location.href='index.html'">
+                <i class="fas fa-arrow-left"></i>
+                <span>Retour</span>
+            </button>
+            <h1 class="page-title">Enregistrement Patient</h1>
+            <a href="index.html" class="nav-icons">
+                <i class="fas fa-home"></i>
+            </a>
+        </div>
+
+        <div class="main-content">
+            <!-- Patient Type Selection -->
+            <div class="patient-type-section fade-in">
+                <h2 class="section-title">
+                    <i class="fas fa-user-md"></i>
+                    Type de Patient
+                </h2>
+                <div class="type-options">
+                    <div class="type-option">
+                        <input type="radio" id="hospitalized" name="patientType" value="hospitalized">
+                        <label for="hospitalized" class="type-label">
+                            <i class="fas fa-hospital type-icon"></i>
+                            <div class="type-name">Patient Hospitalisé</div>
+                            <p class="type-desc">Déjà admis dans un centre de santé</p>
+                        </label>
+                    </div>
+                    
+                    <div class="type-option">
+                        <input type="radio" id="external" name="patientType" value="external" checked>
+                        <label for="external" class="type-label">
+                            <i class="fas fa-home type-icon"></i>
+                            <div class="type-name">Patient Externe</div>
+                            <p class="type-desc">À domicile ou autre lieu</p>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information Form -->
+            <div class="form-section fade-in">
+                <h2 class="section-title">
+                    <i class="fas fa-user-circle"></i>
+                    Informations Personnelles
+                </h2>
+                <form id="patientForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="lastName" class="form-label required">Nom</label>
+                            <input type="text" id="lastName" class="form-input" placeholder="Votre nom" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="firstName" class="form-label required">Prénom</label>
+                            <input type="text" id="firstName" class="form-input" placeholder="Votre prénom" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone" class="form-label required">Numéro de téléphone</label>
+                            <div class="phone-input-container">
+                                <div class="country-code">
+                                    <i class="fas fa-flag"></i>
+                                    +241
+                                </div>
+                                <input type="tel" id="phone" class="form-input phone-number" placeholder="01 23 45 67" required pattern="[0-9]{2} [0-9]{2} [0-9]{2} [0-9]{2}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="city" class="form-label required">Ville</label>
+                            <select id="city" class="form-input select" required>
+                                <option value="">Sélectionnez votre ville</option>
+                                <option value="libreville">Libreville</option>
+                                <option value="port-gentil">Port-Gentil</option>
+                                <option value="franceville">Franceville</option>
+                                <option value="oyem">Oyem</option>
+                                <option value="mouila">Mouila</option>
+                                <option value="lambarene">Lambarene</option>
+                                <option value="tchibanga">Tchibanga</option>
+                                <option value="makokou">Makokou</option>
+                                <option value="koulamoutou">Koulamoutou</option>
+                                <option value="bitam">Bitam</option>
+                                <option value="mitsic">Mitsic</option>
+                                <option value="ngouoni">Ngouoni</option>
+                                <option value="mbigou">Mbigou</option>
+                                <option value="lekoni">Lekoni</option>
+                                <option value="mounana">Mounana</option>
+                                <option value="okondja">Okondja</option>
+                                <option value="lastoursville">Lastoursville</option>
+                                <option value="moanda">Moanda</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address" class="form-label required">Adresse complète</label>
+                            <input type="text" id="address" class="form-input" placeholder="Rue, quartier, numéro" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="healthCenter" class="form-label">Centre de santé</label>
+                            <input type="text" id="healthCenter" class="form-input" placeholder="Nom du centre de santé">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="doctor" class="form-label">Médecin traitant</label>
+                            <input type="text" id="doctor" class="form-input" placeholder="Nom du médecin">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- GPS Section (for external patients) -->
+            <div class="gps-section" id="gpsSection">
+                <div class="gps-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Localisation GPS
+                    </h2>
+                    <div class="gps-controls">
+                        <button class="gps-button" id="useCurrentLocation">
+                            <i class="fas fa-location-dot"></i>
+                            Utiliser ma position
+                        </button>
+                        <button class="gps-button secondary" id="manualLocation">
+                            <i class="fas fa-map"></i>
+                            Position manuelle
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="map"></div>
+                
+                <div class="location-display" id="locationDisplay">
+                    <div class="location-info">
+                        <div class="location-item">
+                            <div class="location-label">Latitude</div>
+                            <div class="location-value" id="latitudeValue">--</div>
+                        </div>
+                        <div class="location-item">
+                            <div class="location-label">Longitude</div>
+                            <div class="location-value" id="longitudeValue">--</div>
+                        </div>
+                        <div class="location-item">
+                            <div class="location-label">Adresse détectée</div>
+                            <div class="location-value" id="addressValue">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Selection -->
+            <div class="services-section fade-in">
+                <h2 class="section-title">
+                    <i class="fas fa-concierge-bell"></i>
+                    Choix de Service
+                </h2>
+                <div class="service-options">
+                    <label class="service-option">
+                        <input type="checkbox" id="serviceLab" name="services" value="laboratoire">
+                        <div class="service-content">
+                            <i class="fas fa-flask service-icon"></i>
+                            <div class="service-info">
+                                <h4>Laboratoire de Proximité</h4>
+                                <p>Examens biologiques avec résultats rapides</p>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <label class="service-option">
+                        <input type="checkbox" id="servicePharmacy" name="services" value="pharmacie">
+                        <div class="service-content">
+                            <i class="fas fa-pills service-icon"></i>
+                            <div class="service-info">
+                                <h4>Pharmacie de Proximité</h4>
+                                <p>Livraison de médicaments sur ordonnance</p>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <label class="service-option">
+                        <input type="checkbox" id="serviceMedical" name="services" value="assistance">
+                        <div class="service-content">
+                            <i class="fas fa-ambulance service-icon"></i>
+                            <div class="service-info">
+                                <h4>Assistance Médicale</h4>
+                                <p>Intervention rapide de professionnels</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section fade-in">
+                <h2 class="section-title">
+                    <i class="fas fa-file-contract"></i>
+                    Conditions d'utilisation
+                </h2>
+                <div class="terms-content">
+                    <p><strong>Conditions Générales d'Utilisation</strong></p>
+                    <p>En utilisant les services de la Conciergerie Médicale Le Havre d'Anine, vous acceptez les conditions suivantes :</p>
+                    <ol>
+                        <li>Les informations fournies doivent être exactes et complètes</li>
+                        <li>Le service est disponible 24h/24 pour les urgences médicales</li>
+                        <li>Les frais de service sont de 5 000 CFA par commande</li>
+                        <li>Les délais de livraison sont de 1 à 2 heures selon la localisation</li>
+                        <li>Les paiements sont sécurisés via Mobile Money</li>
+                        <li>Les assurances partenaires sont listées sur notre plateforme</li>
+                        <li>Vos données personnelles sont protégées conformément à la loi</li>
+                        <li>Le service peut être refusé en cas d'information incomplète</li>
+                        <li>Les annulations doivent être faites au moins 30 minutes avant la livraison</li>
+                        <li>Les réclamations doivent être faites dans les 24 heures suivant le service</li>
+                    </ol>
+                    <p>Pour plus d'informations, contactez-nous au +241 XX XX XX XX</p>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="acceptTerms" required>
+                    <label for="acceptTerms">
+                        J'accepte les <a href="#" id="termsLink">conditions d'utilisation</a> et la 
+                        <a href="#" id="privacyLink">politique de confidentialité</a>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="submit-section fade-in">
+                <button class="submit-button" id="submitButton" disabled>
+                    <span>Enregistrer et continuer</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <i class="fas fa-check-circle modal-icon"></i>
+            <h2 class="modal-title">Enregistrement Réussi !</h2>
+            <p class="modal-message" id="modalMessage">Votre profil a été créé avec succès. Vous allez être redirigé vers le service sélectionné.</p>
+            <div class="modal-buttons">
+                <button class="modal-button primary" id="continueButton">Continuer</button>
+                <button class="modal-button secondary" onclick="window.location.href='index.html'">Accueil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal" id="errorModal">
+        <div class="modal-content">
+            <i class="fas fa-exclamation-triangle modal-icon" style="color: #EF4444;"></i>
+            <h2 class="modal-title">Erreur d'Enregistrement</h2>
+            <p class="modal-message" id="errorMessage">Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.</p>
+            <div class="modal-buttons">
+                <button class="modal-button primary" onclick="closeModal('errorModal')">Réessayer</button>
+                <button class="modal-button secondary" onclick="window.location.href='index.html'">Accueil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal" id="loadingModal">
+        <div class="modal-content">
+            <div class="spinner" style="margin: 0 auto 20px; width: 50px; height: 50px; border-width: 5px;"></div>
+            <h2 class="modal-title">Enregistrement en cours</h2>
+            <p class="modal-message">Veuillez patienter pendant que nous enregistrons vos informations...</p>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../assets/js/toast.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Nominatim for reverse geocoding -->
+    <script>
+        // Initialize map (default to Libreville)
+        let map = null;
+        let marker = null;
+        let userLatitude = 0.4162;
+        let userLongitude = 9.4673;
+        let isGPSActive = false;
+
+        // Initialize map when GPS section is shown
+        function initializeMap() {
+            if (!map) {
+                map = L.map('map').setView([userLatitude, userLongitude], 13);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                
+                // Add marker
+                marker = L.marker([userLatitude, userLongitude], {
+                    draggable: true
+                }).addTo(map);
+                
+                marker.bindPopup("Votre position").openPopup();
+                
+                // Update position when marker is dragged
+                marker.on('dragend', function(e) {
+                    const position = marker.getLatLng();
+                    updateLocationDisplay(position.lat, position.lng);
+                    reverseGeocode(position.lat, position.lng);
+                });
+            }
+        }
+
+        // Update location display
+        function updateLocationDisplay(lat, lng) {
+            userLatitude = lat;
+            userLongitude = lng;
+            
+            document.getElementById('latitudeValue').textContent = lat.toFixed(6);
+            document.getElementById('longitudeValue').textContent = lng.toFixed(6);
+            document.getElementById('locationDisplay').classList.add('active');
+            
+            if (map) {
+                map.setView([lat, lng], 13);
+                marker.setLatLng([lat, lng]);
+            }
+        }
+
+        // Reverse geocode coordinates to address
+        async function reverseGeocode(lat, lng) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                const data = await response.json();
+                
+                if (data.address) {
+                    const address = data.display_name || 'Adresse non spécifiée';
+                    document.getElementById('addressValue').textContent = address;
+                }
+            } catch (error) {
+                console.error('Erreur de géocodage:', error);
+                document.getElementById('addressValue').textContent = 'Adresse non détectée';
+            }
+        }
+
+        // Get current location
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                showToast("La géolocalisation n'est pas supportée par votre navigateur", 'warning');
+                return;
+            }
+            
+            document.getElementById('useCurrentLocation').innerHTML = '<div class="spinner"></div> Localisation...';
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    updateLocationDisplay(lat, lng);
+                    reverseGeocode(lat, lng);
+                    
+                    document.getElementById('useCurrentLocation').innerHTML = '<i class="fas fa-location-dot"></i> Position mise à jour';
+                    setTimeout(() => {
+                        document.getElementById('useCurrentLocation').innerHTML = '<i class="fas fa-location-dot"></i> Utiliser ma position';
+                    }, 2000);
+                },
+                (error) => {
+                    console.error('Erreur de géolocalisation:', error);
+                    showToast("Impossible d'obtenir votre position. Veuillez utiliser la position manuelle.", 'error');
+                    document.getElementById('useCurrentLocation').innerHTML = '<i class="fas fa-location-dot"></i> Utiliser ma position';
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        // Form validation
+        function validateForm() {
+            const form = document.getElementById('patientForm');
+            const termsAccepted = document.getElementById('acceptTerms').checked;
+            const servicesSelected = document.querySelectorAll('input[name="services"]:checked').length > 0;
+            
+            const isValid = form.checkValidity() && termsAccepted && servicesSelected;
+            document.getElementById('submitButton').disabled = !isValid;
+            
+            return isValid;
+        }
+
+        // Show modal
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Submit patient to backend
+        async function submitToDatabase(patientData) {
+            try {
+                const res = await fetch('/api/patients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(patientData)
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    return { success: false, error: err.error || 'server error' };
+                }
+                const body = await res.json();
+                // Normalize server patient to client-friendly camelCase (if present)
+                let clientPatient = null;
+                if (body && body.patient) {
+                    const p = body.patient;
+                    clientPatient = {
+                        id: p.id,
+                        firstName: p.firstName || p.first_name,
+                        lastName: p.lastName || p.last_name,
+                        phone: p.phone,
+                        address: p.address,
+                        city: p.city,
+                        services: p.services || [],
+                        createdAt: p.createdAt || p.created_at
+                    };
+                }
+                // Normalize response to the old shape
+                return { success: !!body.ok, data: clientPatient || null };            } catch (e) {
+                console.error('submitToDatabase failed', e && e.message);
+                return { success: false, error: e && e.message };
+            }
+        }
+
+        // Main function when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Patient type toggle
+            const patientTypeRadios = document.querySelectorAll('input[name="patientType"]');
+            const gpsSection = document.getElementById('gpsSection');
+            
+            patientTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'external') {
+                        gpsSection.classList.add('active');
+                        if (!isGPSActive) {
+                            initializeMap();
+                            isGPSActive = true;
+                        }
+                    } else {
+                        gpsSection.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Default to external patient
+            document.getElementById('external').checked = true;
+            gpsSection.classList.add('active');
+            setTimeout(() => {
+                initializeMap();
+                isGPSActive = true;
+            }, 500);
+            
+            // GPS buttons
+            document.getElementById('useCurrentLocation').addEventListener('click', getCurrentLocation);
+            
+            document.getElementById('manualLocation').addEventListener('click', function() {
+                if (map) {
+                    const lat = parseFloat(prompt("Entrez la latitude (ex: 0.4162):", userLatitude));
+                    const lng = parseFloat(prompt("Entrez la longitude (ex: 9.4673):", userLongitude));
+                    
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        updateLocationDisplay(lat, lng);
+                        reverseGeocode(lat, lng);
+                    } else {
+                        showToast("Coordonnées invalides", 'error');
+                    }
+                }
+            });
+            
+            // Form validation on input
+            const formInputs = document.querySelectorAll('#patientForm input, #patientForm select');
+            formInputs.forEach(input => {
+                input.addEventListener('input', validateForm);
+                input.addEventListener('change', validateForm);
+            });
+            
+            // Services checkbox validation
+            const serviceCheckboxes = document.querySelectorAll('input[name="services"]');
+            serviceCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', validateForm);
+            });
+            
+            // Terms checkbox validation
+            document.getElementById('acceptTerms').addEventListener('change', validateForm);
+            
+            // Phone number formatting
+            document.getElementById('phone').addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 8) value = value.substring(0, 8);
+                
+                let formatted = '';
+                for (let i = 0; i < value.length; i++) {
+                    if (i === 2 || i === 4 || i === 6) {
+                        formatted += ' ';
+                    }
+                    formatted += value[i];
+                }
+                
+                e.target.value = formatted;
+            });
+            
+            // Form submission
+            document.getElementById('submitButton').addEventListener('click', async function() {
+                if (!validateForm()) {
+                    showToast("Veuillez remplir tous les champs obligatoires et accepter les conditions.", 'error');
+                    return;
+                }
+                
+                // Collect form data
+                const patientData = {
+                    type: document.querySelector('input[name="patientType"]:checked').value,
+                    lastName: document.getElementById('lastName').value,
+                    firstName: document.getElementById('firstName').value,
+                    phone: '+241 ' + document.getElementById('phone').value,
+                    city: document.getElementById('city').value,
+                    address: document.getElementById('address').value,
+                    healthCenter: document.getElementById('healthCenter').value,
+                    doctor: document.getElementById('doctor').value,
+                    gps: isGPSActive ? {
+                        latitude: userLatitude,
+                        longitude: userLongitude,
+                        address: document.getElementById('addressValue').textContent
+                    } : null,
+                    services: Array.from(document.querySelectorAll('input[name="services"]:checked')).map(cb => cb.value),
+                    timestamp: new Date().toISOString(),
+                    patientId: 'PAT-' + Date.now() + '-' + Math.floor(Math.random() * 1000)
+                };
+                
+                // Show loading modal
+                showModal('loadingModal');
+                
+                // Simulate database submission
+                const result = await submitToDatabase(patientData);
+                
+                // Hide loading modal
+                closeModal('loadingModal');
+                
+                if (result.success) {
+                    // Use server patient if available (includes id), otherwise fallback to local data
+                    const serverPatient = result.data || patientData;
+
+                    // Store patient data in session for other pages
+                    sessionStorage.setItem('currentPatient', JSON.stringify(serverPatient));
+
+                    // Emit registration event to server (if socket available)
+                    try {
+                        const socket = io();
+                        socket.emit('newRegistration', serverPatient);
+                    } catch (e) {
+                        console.warn('Socket.IO not available (enregistrement):', e && e.message);
+                    }
+                    
+                    // Update modal message based on selected services
+                    let serviceMessage = '';
+                    if (patientData.services.includes('laboratoire')) {
+                        serviceMessage = 'Vous allez être redirigé vers la page Laboratoire.';
+                    } else if (patientData.services.includes('pharmacie')) {
+                        serviceMessage = 'Vous allez être redirigé vers la page Pharmacie.';
+                    } else {
+                        serviceMessage = 'Vous allez être redirigé vers la page Assistance Médicale.';
+                    }
+                    
+                    document.getElementById('modalMessage').textContent = 
+                        `Bonjour ${patientData.firstName} ${patientData.lastName}, votre profil a été créé avec succès. ${serviceMessage}`;
+                    
+                    // Set continue button based on selected service
+                    const continueButton = document.getElementById('continueButton');
+                    if (patientData.services.includes('laboratoire')) {
+                        continueButton.onclick = () => window.location.href = 'laboratoire.html';
+                    } else if (patientData.services.includes('pharmacie')) {
+                        continueButton.onclick = () => window.location.href = 'pharmacie.html';
+                    } else {
+                        continueButton.onclick = () => window.location.href = 'assistance.html';
+                    }
+                    
+                    showModal('successModal');
+                } else {
+                    document.getElementById('errorMessage').textContent = 
+                        "Une erreur est survenue lors de l'enregistrement dans la base de données. Veuillez réessayer.";
+                    showModal('errorModal');
+                }
+            });
+            
+            // Terms and privacy links
+            document.getElementById('termsLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                showToast("Conditions d'utilisation détaillées - Veuillez contacter le service client pour plus d'informations.", 'info');
+            });
+            
+            document.getElementById('privacyLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                showToast("Politique de confidentialité - Vos données sont sécurisées et utilisées uniquement pour la prestation de services médicaux.", 'info');
+            });
+            
+            // Initialize validation
+            validateForm();
+        });
+    </script>
+</body>
+</html>
