@@ -26,7 +26,7 @@ const allowedOrigins = [
   'https://rmha1-0.onrender.com'  // ← URL frontend
 ];
 
-app.use(cors({
+app.use(cors({ 
   origin: allowedOrigins,
   credentials: true
 }));
@@ -130,9 +130,11 @@ io.on('connection', (socket) => {
 const authRoutes = require('./routes/auth')(auth, audit, pool, requireAuth);
 const adminRoutes = require('./routes/admin')(auth, audit, pool, requireAuth, requireRole);
 const patientsRoutes = require('./routes/patients')(auth, audit, pool);
+const pharmacistRoutes = require('./routes/pharmacist')(auth, audit, pool, requireAuth, requireRole);
 
 app.use('/api', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/pharmacist', pharmacistRoutes);
 app.use('/api', patientsRoutes);
 
 // Fallback for client-side routes: serve index.html for non-API requests
