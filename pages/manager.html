@@ -1912,11 +1912,27 @@
         </div>
     </div>
 
-    <!-- Leaflet JS -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../assets/js/toast.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Sample data
-        const ordersData = [
+        // Configuration API
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:4000/api'
+            : `https://${window.location.hostname.replace('laboratoire-frontend', 'laboratoire-backend')}.onrender.com/api`;
+
+        // State management
+        let ordersData = [];
+        let couriersData = [];
+        let patientsData = [];
+        let alertsData = [];
+        let socket = null;
+        let map = null;
+        let courierMarkers = {};
+        let currentOrder = null;
+
+        // Sample data fallback
+        const fallbackOrdersData = [
             {
                 id: "CMD-124",
                 date: "15/11/2024 14:30",
@@ -2173,16 +2189,144 @@
         ];
 
         // Global variables
-        let map = null;
         let currentSection = 'dashboard';
         let currentUser = {
-            name: "Manager M. Admin",
-            email: "manager@conciergerie-ga.ga",
+            name: sessionStorage.getItem('username') || "Manager",
+            email: sessionStorage.getItem('userEmail') || "manager@conciergerie-ga.ga",
             role: "MANAGER"
         };
 
+        // Initialize Socket.IO connection
+        function initializeSocket() {
+            try {
+                socket = io();
+                socket.emit('join', 'manager');
+
+                // Écouter les nouvelles commandes
+                socket.on('newOrder', (order) => {
+                    console.log('Nouvelle commande reçue:', order);
+                    ordersData.unshift(order);
+                    populateRecentOrders();
+                    populateAllOrders();
+                    showToast(`Nouvelle commande: ${order.orderId || order.id}`, 'info');
+                });
+
+                // Écouter les positions des coursiers
+                socket.on('courierPosition', (data) => {
+                    console.log('Position reçue:', data);
+                    if (map && data.lat && data.lng) {
+                        updateCourierOnMap(data);
+                    }
+                });
+
+                // Écouter les mises à jour de commandes
+                socket.on('orderUpdated', (data) => {
+                    console.log('Commande mise à jour:', data);
+                    const order = ordersData.find(o => o.id === data.orderId || o.orderId === data.orderId);
+                    if (order) {
+                        order.status = data.status;
+                    }
+                    populateAllOrders();
+                });
+
+                console.log('Socket.IO initialisé');
+            } catch (e) {
+                console.warn('Socket.IO non disponible:', e.message);
+            }
+        }
+
+        // Update courier position on map
+        function updateCourierOnMap(position) {
+            if (!courierMarkers[position.courierId]) {
+                const marker = L.marker([position.lat, position.lng]).addTo(map)
+                    .bindPopup(`Coursier ${position.courierId}`);
+                courierMarkers[position.courierId] = marker;
+            } else {
+                courierMarkers[position.courierId].setLatLng([position.lat, position.lng]);
+            }
+        }
+
+        // Load data from API
+        async function loadOrders() {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/manager/orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load orders');
+                const result = await response.json();
+                ordersData = result.orders || [];
+            } catch (err) {
+                console.warn('Erreur chargement commandes, utilisation données fallback:', err.message);
+                ordersData = fallbackOrdersData;
+            }
+        }
+
+        async function loadCouriers() {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/manager/couriers`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load couriers');
+                const result = await response.json();
+                couriersData = result.couriers || [];
+            } catch (err) {
+                console.warn('Erreur chargement coursiers:', err.message);
+                couriersData = [];
+            }
+        }
+
+        async function loadPatients() {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/manager/patients`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load patients');
+                const result = await response.json();
+                patientsData = result.patients || [];
+            } catch (err) {
+                console.warn('Erreur chargement patients:', err.message);
+                patientsData = [];
+            }
+        }
+
+        async function loadAlerts() {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/manager/alerts`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load alerts');
+                const result = await response.json();
+                alertsData = result.alerts || [];
+            } catch (err) {
+                console.warn('Erreur chargement alertes:', err.message);
+                alertsData = [];
+            }
+        }
+
         // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            initializeSocket();
+            await loadOrders();
+            await loadCouriers();
+            await loadPatients();
+            await loadAlerts();
+
             initializeUser();
             initializeNavigation();
             initializeMap();
@@ -2622,43 +2766,47 @@
 
         // View order details
         function viewOrderDetails(orderId) {
-            const order = ordersData.find(o => o.id === orderId);
+            const order = ordersData.find(o => o.id === orderId || o.orderId === orderId);
             if (!order) return;
             
+            currentOrder = order;
+            
             // Populate modal
-            document.getElementById('modalOrderId').textContent = order.id;
-            document.getElementById('modalOrderDate').textContent = order.date;
-            document.getElementById('modalPatient').textContent = order.patient;
-            document.getElementById('modalPatientPhone').textContent = order.phone;
-            document.getElementById('modalServiceType').textContent = order.typeText;
-            document.getElementById('modalStatus').textContent = order.statusText;
-            document.getElementById('modalCourier').textContent = order.courier;
-            document.getElementById('modalDeliveryTime').textContent = order.deliveryTime;
-            document.getElementById('modalInsurance').textContent = order.insurance;
-            document.getElementById('modalPayment').textContent = order.payment;
-            document.getElementById('modalExamsTotal').textContent = order.examsTotal;
-            document.getElementById('modalInsuranceCoverage').textContent = `-${order.insuranceCoverage}`;
-            document.getElementById('modalRemainingAmount').textContent = order.remainingAmount;
-            document.getElementById('modalTotalPaid').textContent = order.totalPaid;
+            document.getElementById('modalOrderId').textContent = order.id || order.orderId;
+            document.getElementById('modalOrderDate').textContent = order.date || order.createdAt;
+            document.getElementById('modalPatient').textContent = order.patient || (order.patient?.firstName + ' ' + order.patient?.lastName);
+            document.getElementById('modalPatientPhone').textContent = order.phone || (order.patient?.phone || 'N/A');
+            document.getElementById('modalServiceType').textContent = order.typeText || (order.services?.[0] || 'N/A');
+            document.getElementById('modalStatus').textContent = order.statusText || order.status;
+            document.getElementById('modalCourier').textContent = order.courier || 'À assigner';
+            document.getElementById('modalDeliveryTime').textContent = order.deliveryTime || 'N/A';
+            document.getElementById('modalInsurance').textContent = order.insurance || 'Sans assurance';
+            document.getElementById('modalPayment').textContent = order.payment || 'À définir';
+            document.getElementById('modalExamsTotal').textContent = order.examsTotal || '0 CFA';
+            document.getElementById('modalInsuranceCoverage').textContent = `-${order.insuranceCoverage || '0 CFA'}`;
+            document.getElementById('modalRemainingAmount').textContent = order.remainingAmount || '0 CFA';
+            document.getElementById('modalTotalPaid').textContent = order.totalPaid || '0 CFA';
             
             // Update status class
             const statusEl = document.getElementById('modalStatus');
             statusEl.className = 'order-status';
-            statusEl.classList.add(`status-${order.status}`);
+            statusEl.classList.add(`status-${order.status || 'pending'}`);
             
             // Populate items
             const itemsList = document.getElementById('modalItemsList');
             itemsList.innerHTML = '';
             
-            order.items.forEach(item => {
-                const itemRow = document.createElement('div');
-                itemRow.className = 'item-row';
-                itemRow.innerHTML = `
-                    <span>${item.name}</span>
-                    <span>${item.price}</span>
-                `;
-                itemsList.appendChild(itemRow);
-            });
+            if (order.items && order.items.length > 0) {
+                order.items.forEach(item => {
+                    const itemRow = document.createElement('div');
+                    itemRow.className = 'item-row';
+                    itemRow.innerHTML = `
+                        <span>${item.name}</span>
+                        <span>${item.price}</span>
+                    `;
+                    itemsList.appendChild(itemRow);
+                });
+            }
             
             showModal('orderDetailsModal');
         }
@@ -2824,21 +2972,47 @@
         }
 
         // Generate daily report
-        function generateDailyReport() {
+        async function generateDailyReport() {
             showLoading('Génération du rapport journalier...');
-            setTimeout(() => {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/manager/reports/daily`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to generate report');
+                const result = await response.json();
+                
                 hideLoading();
-                showToast('Rapport journalier généré - PDF téléchargeable', 'success');
-            }, 2000);
+                showNotification('Rapport journalier généré avec succès', 'success');
+            } catch (err) {
+                hideLoading();
+                showNotification('Erreur: ' + err.message, 'error');
+            }
         }
 
         // Generate monthly report
-        function generateMonthlyReport() {
+        async function generateMonthlyReport() {
             showLoading('Génération du rapport mensuel...');
-            setTimeout(() => {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/manager/reports/monthly`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to generate report');
+                const result = await response.json();
+                
                 hideLoading();
-                showToast('Rapport mensuel généré - PDF téléchargeable', 'success');
-            }, 2500);
+                showNotification('Rapport mensuel généré avec succès', 'success');
+            } catch (err) {
+                hideLoading();
+                showNotification('Erreur: ' + err.message, 'error');
+            }
         }
 
         // Show new order modal
@@ -2847,21 +3021,47 @@
         }
 
         // Create new order
-        function createNewOrder() {
+        async function createNewOrder() {
             const orderType = document.getElementById('newOrderType').value;
-            const patient = document.getElementById('newOrderPatient').value;
+            const patientName = document.getElementById('newOrderPatient').value;
             
-            if (!orderType || !patient) {
+            if (!orderType || !patientName) {
                 showToast('Veuillez remplir tous les champs obligatoires', 'error');
                 return;
             }
             
             showLoading('Création de la nouvelle commande...');
-            setTimeout(() => {
+            
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const [firstName, lastName] = patientName.split(' ');
+                
+                const response = await fetch(`${API_BASE_URL}/manager/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: firstName || 'Patient',
+                        lastName: lastName || '',
+                        services: [orderType]
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Failed to create order');
+                const result = await response.json();
+                
                 hideLoading();
                 closeModal('newOrderModal');
-                showToast('Nouvelle commande créée avec succès', 'success');
-            }, 1500);
+                ordersData.unshift(result.order);
+                populateRecentOrders();
+                populateAllOrders();
+                showNotification('Nouvelle commande créée avec succès', 'success');
+            } catch (err) {
+                hideLoading();
+                showNotification('Erreur: ' + err.message, 'error');
+            }
         }
 
         // Show new courier modal
@@ -2880,15 +3080,36 @@
         }
 
         // Update order status
-        function updateOrderStatus() {
+        async function updateOrderStatus() {
             const newStatus = prompt('Nouveau statut (pending, in-progress, delivered, cancelled):');
-            if (newStatus) {
-                showLoading('Mise à jour du statut...');
-                setTimeout(() => {
-                    hideLoading();
-                    closeModal('orderDetailsModal');
-                    showToast(`Statut mis à jour: ${newStatus}`, 'success');
-                }, 1000);
+            if (!newStatus) return;
+            
+            showLoading('Mise à jour du statut...');
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const orderId = currentOrder?.id || currentOrder?.orderId;
+                
+                const response = await fetch(`${API_BASE_URL}/manager/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (!response.ok) throw new Error('Failed to update order');
+                
+                hideLoading();
+                closeModal('orderDetailsModal');
+                ordersData = ordersData.map(o => 
+                    (o.id === orderId || o.orderId === orderId) ? {...o, status: newStatus} : o
+                );
+                populateAllOrders();
+                showNotification(`Statut mis à jour: ${newStatus}`, 'success');
+            } catch (err) {
+                hideLoading();
+                showNotification('Erreur: ' + err.message, 'error');
             }
         }
 
@@ -2915,6 +3136,11 @@
         function hideLoading() {
             document.getElementById('loadingModal').classList.remove('active');
             document.body.style.overflow = 'auto';
+        }
+
+        // Show notification (alias for showToast)
+        function showNotification(message, type = 'success') {
+            showToast(message, type);
         }
 
         // Logout
@@ -2956,74 +3182,3 @@
     </script>
 </body>
 </html>
-<script src="/socket.io/socket.io.js"></script>
-<script>
-    (function(){
-        try {
-            const socket = io();
-            socket.emit('join','manager');
-            const ensureEl = () => {
-                let el = document.getElementById('socketNotifications');
-                if (!el) {
-                    el = document.createElement('div');
-                    el.id = 'socketNotifications';
-                    el.style.position = 'fixed';
-                    el.style.right = '12px';
-                    el.style.bottom = '12px';
-                    el.style.maxWidth = '360px';
-                    document.body.appendChild(el);
-                }
-                return el;
-            };
-
-            socket.on('newOrder', order => {
-                const el = ensureEl();
-                const item = document.createElement('div');
-                item.style.background = '#fff';
-                item.style.border = '1px solid #e5e7eb';
-                item.style.padding = '10px';
-                item.style.marginTop = '8px';
-                item.textContent = `Nouvelle commande: ${order.orderId || order.patientId || ''} - ${order.patient ? (order.patient.firstName + ' ' + order.patient.lastName) : ''}`;
-                el.prepend(item);
-                console.log('manager newOrder', order);
-            });
-
-            socket.on('orderValidated', data => {
-                const el = ensureEl();
-                const item = document.createElement('div');
-                item.style.background = '#ecfeff';
-                item.style.border = '1px solid #bffcf6';
-                item.style.padding = '10px';
-                item.style.marginTop = '8px';
-                item.textContent = `Commande validée: ${data.orderId || ''} par ${data.validatedBy || ''}`;
-                el.prepend(item);
-                console.log('manager orderValidated', data);
-            });
-
-            socket.on('orderPrepared', data => {
-                const el = ensureEl();
-                const item = document.createElement('div');
-                item.style.background = '#fffbeb';
-                item.style.border = '1px solid #fef3c7';
-                item.style.padding = '10px';
-                item.style.marginTop = '8px';
-                item.textContent = `Commande préparée: ${data.orderId || ''} par ${data.preparedBy || ''}`;
-                el.prepend(item);
-                console.log('manager orderPrepared', data);
-            });
-
-            socket.on('activity', a => {
-                console.log('activity', a);
-                const el = ensureEl();
-                const item = document.createElement('div');
-                item.style.background = '#fff';
-                item.style.border = '1px solid #e5e7eb';
-                item.style.padding = '10px';
-                item.style.marginTop = '8px';
-                item.textContent = `Activité: ${a.type || ''}`;
-                el.prepend(item);
-            });
-        } catch (e) { console.warn('Socket.IO not available (manager):', e && e.message); }
-    })();
-</script>
-<script src="../assets/js/toast.js"></script>

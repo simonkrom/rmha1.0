@@ -131,9 +131,11 @@ const authRoutes = require('./routes/auth')(auth, audit, pool, requireAuth);
 const adminRoutes = require('./routes/admin')(auth, audit, pool, requireAuth, requireRole);
 const patientsRoutes = require('./routes/patients')(auth, audit, pool);
 const pharmacistRoutes = require('./routes/pharmacist')(auth, audit, pool, requireAuth, requireRole);
+const managerRoutes = require('./routes/manager')(auth, audit, pool, requireAuth, requireRole);
 
 app.use('/api', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/manager', managerRoutes);
 app.use('/api/pharmacist', pharmacistRoutes);
 app.use('/api', patientsRoutes);
 

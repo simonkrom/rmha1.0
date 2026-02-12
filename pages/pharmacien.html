@@ -1715,9 +1715,21 @@
         </div>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="../assets/js/toast.js"></script>
     <script>
-        // Sample data
-        const ordersData = [
+        // Configuration API
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:4000/api'
+            : `https://${window.location.hostname.replace('laboratoire-frontend', 'laboratoire-backend')}.onrender.com/api`;
+
+        // State management
+        let ordersData = [];
+        let medicationsData = [];
+        let notificationsData = [];
+
+        // Sample data fallback (untuk testing tanpa API)
+        const fallbackOrdersData = [
             {
                 id: "CMD-124",
                 date: "15/11/2024 14:30",
@@ -1892,22 +1904,6 @@
                 message: "Paracétamol 500mg: seulement 12 unités restantes",
                 time: "Il y a 1 heure",
                 read: false
-            },
-            {
-                id: 3,
-                type: "reminder",
-                title: "Rappel de commande",
-                message: "Commande #126 en attente depuis 45 minutes",
-                time: "Il y a 2 heures",
-                read: true
-            },
-            {
-                id: 4,
-                type: "system",
-                title: "Mise à jour système",
-                message: "Nouvelle version de l'interface disponible",
-                time: "Il y a 1 jour",
-                read: true
             }
         ];
 
@@ -1915,9 +1911,85 @@
         let currentSection = 'dashboard';
         let currentOrder = null;
         let notificationRecipients = [];
+        let socket = null;
+
+        // Initialize Socket.IO connection
+        function initializeSocket() {
+            try {
+                socket = io();
+                socket.emit('join', 'pharmacien');
+
+                // Écouter les nouvelles commandes
+                socket.on('newOrder', (order) => {
+                    console.log('Nouvelle commande reçue:', order);
+                    ordersData.unshift(order);
+                    populatePendingOrders();
+                    populateAllOrders();
+                    updateStatsCounters();
+                    showNotification(`Nouvelle commande: ${order.orderId || order.id}`, 'info');
+                });
+
+                // Écouter les confirmations de préparation
+                socket.on('orderPrepared', (data) => {
+                    console.log('Commande préparée:', data);
+                    const order = ordersData.find(o => o.id === data.orderId || o.orderId === data.orderId);
+                    if (order) {
+                        order.status = 'prepared';
+                        order.statusText = 'Préparée';
+                        populatePendingOrders();
+                        updateStatsCounters();
+                    }
+                });
+
+                console.log('Socket.IO initialisé');
+            } catch (e) {
+                console.warn('Socket.IO non disponible:', e.message);
+            }
+        }
+
+        // Load data from API
+        async function loadOrders() {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/pharmacist/orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load orders');
+                const result = await response.json();
+                ordersData = result.orders || [];
+            } catch (err) {
+                console.warn('Erreur chargement commandes, utilisation données fallback:', err.message);
+                ordersData = fallbackOrdersData;
+            }
+        }
+
+        async function loadMedications() {
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/pharmacist/medications`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load medications');
+                const result = await response.json();
+                medicationsData = result.medications || [];
+            } catch (err) {
+                console.warn('Erreur chargement médicaments:', err.message);
+                medicationsData = [];
+            }
+        }
 
         // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            initializeSocket();
+            await loadOrders();
+            await loadMedications();
+            
             initializeNavigation();
             populatePendingOrders();
             populateAllOrders();
@@ -2070,23 +2142,30 @@
         // Populate medications table
         function populateMedications() {
             const tableBody = document.getElementById('medicationsTable');
+            if (!tableBody) return;
+            
             tableBody.innerHTML = '';
             
+            if (medicationsData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Aucun médicament disponible</td></tr>';
+                return;
+            }
+            
             medicationsData.forEach(med => {
-                const stockClass = `stock-${med.status}`;
+                const stockClass = med.stock <= 10 ? 'stock-low' : med.stock <= 30 ? 'stock-medium' : 'stock-high';
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
-                        <div style="font-weight: 600;">${med.name}</div>
-                        <div style="font-size: 0.85rem; color: var(--gray);">ID: MED-${med.id.toString().padStart(3, '0')}</div>
+                        <div style="font-weight: 600;">${med.name || 'N/A'}</div>
+                        <div style="font-size: 0.85rem; color: var(--gray);">ID: MED-${(med.id || '00').toString().padStart(3, '0')}</div>
                     </td>
-                    <td>${med.category}</td>
+                    <td>${med.category || 'Non catégorisé'}</td>
                     <td>
-                        <span class="stock-level ${stockClass}">${med.stock} unités</span>
+                        <span class="stock-level ${stockClass}">${med.stock || 0} unités</span>
                     </td>
-                    <td>${med.alertThreshold} unités</td>
-                    <td>${med.price}</td>
-                    <td>${med.lastOrder}</td>
+                    <td>${med.alertThreshold || 'N/A'} unités</td>
+                    <td>${med.price ||'N/A'}</td>
+                    <td>${med.lastOrder || 'Jamais'}</td>
                     <td>
                         <div class="order-actions">
                             <button class="action-icon view" onclick="viewMedication(${med.id})">
@@ -2275,28 +2354,53 @@
         }
 
         // Mark order as ready
-        function markAsReady() {
+        async function markAsReady() {
             if (!currentOrder) return;
             
-            // Update order status
-            const orderIndex = ordersData.findIndex(o => o.id === currentOrder.id);
-            if (orderIndex !== -1) {
-                ordersData[orderIndex].status = 'ready';
-                ordersData[orderIndex].statusText = 'Prête';
-                ordersData[orderIndex].courier = 'À assigner';
+            showLoading("Marquer la commande comme prête...");
+            
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const orderId = currentOrder.id || currentOrder.orderId;
                 
-                // Show notification modal
-                showNotificationModal(currentOrder.id);
+                const response = await fetch(`${API_BASE_URL}/pharmacist/orders/${orderId}/prepare`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
                 
-                // Update UI
-                populatePendingOrders();
-                populateAllOrders();
-                updateStatsCounters();
+                if (!response.ok) throw new Error('Failed to prepare order');
                 
-                // Close prescription preview
-                closePrescription();
-                
-                showNotification(`Commande ${currentOrder.id} marquée comme prête`, "success");
+                // Update local data
+                const orderIndex = ordersData.findIndex(o => o.id === orderId || o.orderId === orderId);
+                if (orderIndex !== -1) {
+                    ordersData[orderIndex].status = 'prepared';
+                    ordersData[orderIndex].statusText = 'Préparée';
+                    
+                    // Emit socket event
+                    if (socket) {
+                        socket.emit('orderPrepared', { 
+                            orderId, 
+                            preparedBy: sessionStorage.getItem('username')
+                        });
+                    }
+                    
+                    // Update UI
+                    populatePendingOrders();
+                    populateAllOrders();
+                    updateStatsCounters();
+                    
+                    // Close prescription preview
+                    closePrescription();
+                    hideLoading();
+                    
+                    showNotification(`Commande ${orderId} marquée comme prête`, "success");
+                }
+            } catch (err) {
+                hideLoading();
+                showNotification("Erreur: " + err.message, "error");
             }
         }
 
@@ -2394,7 +2498,7 @@
         }
 
         // Reorder medication
-        function reorderMedication(medicationId) {
+        async function reorderMedication(medicationId) {
             const medication = medicationsData.find(m => m.id === medicationId);
             if (!medication) return;
             
@@ -2403,26 +2507,26 @@
             if (quantity && !isNaN(quantity) && parseInt(quantity) > 0) {
                 showLoading(`Commande de ${quantity} unités de ${medication.name}...`);
                 
-                setTimeout(() => {
+                try {
+                    const token = sessionStorage.getItem('authToken');
+                    const response = await fetch(`${API_BASE_URL}/pharmacist/medications/${medicationId}/reorder`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ quantity: parseInt(quantity) })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to reorder medication');
+                    
                     hideLoading();
                     showNotification(`Commande de ${quantity} unités de ${medication.name} passée avec succès`, "success");
-                    
-                    // Update medication stock
-                    medication.stock += parseInt(quantity);
-                    medication.lastOrder = new Date().toLocaleDateString('fr-FR');
-                    
-                    // Update status based on new stock
-                    if (medication.stock >= medication.alertThreshold * 1.5) {
-                        medication.status = "high";
-                    } else if (medication.stock >= medication.alertThreshold) {
-                        medication.status = "medium";
-                    } else {
-                        medication.status = "low";
-                    }
-                    
                     populateMedications();
-                    updateStatsCounters();
-                }, 1500);
+                } catch (err) {
+                    hideLoading();
+                    showNotification("Erreur: " + err.message, "error");
+                }
             }
         }
 
@@ -2536,13 +2640,61 @@
         }
 
         // Search prescriptions
-        function searchPrescriptions() {
-            showToast("Fonction de recherche d'ordonnances - À implémenter", 'info');
+        async function searchPrescriptions() {
+            showLoading("Recherche d'ordonnances...");
+            try {
+                const token = sessionStorage.getItem('authToken');
+                const response = await fetch(`${API_BASE_URL}/pharmacist/prescriptions`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load prescriptions');
+                const result = await response.json();
+                
+                hideLoading();
+                showToast(`${result.prescriptions?.length || 0} ordonnances trouvées`, 'success');
+            } catch (err) {
+                hideLoading();
+                showNotification("Erreur: " + err.message, "error");
+            }
         }
 
         // Upload prescription
-        function uploadPrescription() {
-            showToast("Fonction d'upload d'ordonnance - À implémenter", 'info');
+        async function uploadPrescription() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*,.pdf';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                showLoading("Upload d'ordonnance en cours...");
+                
+                try {
+                    const token = sessionStorage.getItem('authToken');
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    const response = await fetch(`${API_BASE_URL}/pharmacist/prescriptions/upload`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to upload prescription');
+                    
+                    hideLoading();
+                    showNotification("Ordonnance uploadée avec succès", "success");
+                } catch (err) {
+                    hideLoading();
+                    showNotification("Erreur: " + err.message, "error");
+                }
+            };
+            input.click();
         }
 
         // Export stock
@@ -2663,7 +2815,7 @@
                 setTimeout(() => {
                     hideLoading();
                     showToast("Déconnexion réussie", 'success');
-                    // In a real app, you would redirect to login page
+                    sessionStorage.clear();
                     window.location.href = 'index.html';
                 }, 1500);
             }
@@ -2671,67 +2823,3 @@
     </script>
 </body>
 </html>
-<script src="/socket.io/socket.io.js"></script>
-<script>
-    (function(){
-        try {
-            const socket = io();
-            socket.emit('join','pharmacien');
-
-            function ensureContainer() {
-                let c = document.getElementById('pharmacienOrders');
-                if (!c) {
-                    c = document.createElement('div');
-                    c.id = 'pharmacienOrders';
-                    c.style.position = 'fixed';
-                    c.style.right = '12px';
-                    c.style.top = '80px';
-                    c.style.width = '360px';
-                    c.style.maxHeight = '70vh';
-                    c.style.overflow = 'auto';
-                    document.body.appendChild(c);
-                }
-                return c;
-            }
-
-            function render(order) {
-                const container = ensureContainer();
-                const card = document.createElement('div');
-                card.style.background = '#fff';
-                card.style.border = '1px solid #e5e7eb';
-                card.style.padding = '12px';
-                card.style.marginBottom = '8px';
-                card.dataset.orderId = order.orderId || order.patientId || '';
-
-                card.innerHTML = `<div style="font-weight:700">${card.dataset.orderId}</div><div style="font-size:0.9rem">${order.patient ? (order.patient.firstName + ' ' + order.patient.lastName) : ''} • ${order.patient ? order.patient.phone : ''}</div>`;
-
-                const btn = document.createElement('button');
-                btn.textContent = 'Préparer';
-                btn.className = 'action-btn primary';
-                btn.style.marginTop = '8px';
-                btn.onclick = () => {
-                    const payload = { orderId: card.dataset.orderId, preparedBy: 'pharmacien', timestamp: new Date().toISOString() };
-                    socket.emit('orderPrepared', payload);
-                    btn.disabled = true; btn.textContent = 'Préparé';
-                };
-
-                card.appendChild(btn);
-                container.prepend(card);
-            }
-
-            socket.on('newOrder', order => {
-                console.log('pharmacien newOrder', order);
-                render(order);
-            });
-
-            socket.on('orderPrepared', data => {
-                console.log('orderPrepared', data);
-                const card = document.querySelector(`#pharmacienOrders [data-order-id="${data.orderId}"]`);
-                if (card) {
-                    const b = card.querySelector('button'); if (b) { b.disabled = true; b.textContent = 'Préparé'; }
-                }
-            });
-
-        } catch (e) { console.warn('Socket.IO not available (pharmacien):', e && e.message); }
-    })();
-</script>
