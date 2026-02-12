@@ -51,10 +51,16 @@ module.exports = (auth, audit, pool, requireAuth) => {
 
   router.get('/profile', requireAuth(auth), async (req, res) => {
     try {
-      const { rows } = await pool.query('SELECT id, username, role, created_at FROM users WHERE id = $1', [req.user.id]);
-      const userRow = rows && rows[0];
-      await audit.log({ user_id: req.user.id, action: 'read_profile', resource: 'user', meta: { id: req.user.id } });
-      res.json({ ok: true, user: userRow });
+      if (pool) {
+        const { rows } = await pool.query('SELECT id, username, role, created_at FROM users WHERE id = $1', [req.user.id]);
+        const userRow = rows && rows[0];
+        try { await audit.log({ user_id: req.user.id, action: 'read_profile', resource: 'user', meta: { id: req.user.id } }); } catch (e) { console.error('audit error', e && e.message); }
+        res.json({ ok: true, user: userRow });
+      } else {
+        // Fallback: return user from JWT token (since we don't have access to local users storage here)
+        try { await audit.log({ user_id: req.user.id, action: 'read_profile', resource: 'user', meta: { id: req.user.id } }); } catch (e) { console.error('audit error', e && e.message); }
+        res.json({ ok: true, user: { id: req.user.id, role: req.user.role } });
+      }
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'internal' });
