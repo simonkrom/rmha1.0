@@ -149,58 +149,19 @@ app.get('*', (req, res, next) => {
   try {
     if (process.env.DATABASE_URL) {
       await runMigrations();
+      console.log('✓ Database migrations completed');
     } else {
-      console.warn('No DATABASE_URL set; skipping migrations');
-    }
-
-    // Seed default users if in dev mode (no DATABASE_URL)
-    if (!process.env.DATABASE_URL) {
-      console.warn('Running in dev mode - seeding default users...');
-      try {
-        // Create default admin user
-        await auth.register('admin', 'admin123', 'admin');
-        console.log('✓ Created default admin user (admin/admin123)');
-      } catch (e) {
-        if (e.message === 'USER_EXISTS') {
-          console.log('✓ Admin user already exists');
-        } else {
-          console.error('Failed to create admin user:', e.message);
-        }
-      }
-
-      try {
-        // Create default manager user
-        await auth.register('manager', 'manager123', 'manager');
-        console.log('✓ Created default manager user (manager/manager123)');
-      } catch (e) {
-        if (e.message !== 'USER_EXISTS') console.error('Failed to create manager user:', e.message);
-      }
-
-      try {
-        // Create default pharmacist user
-        await auth.register('pharmacien', 'pharmacien123', 'pharmacien');
-        console.log('✓ Created default pharmacien user (pharmacien/pharmacien123)');
-      } catch (e) {
-        if (e.message !== 'USER_EXISTS') console.error('Failed to create pharmacist user:', e.message);
-      }
-
-      try {
-        // Create default courier user
-        await auth.register('coursier', 'coursier123', 'coursier');
-        console.log('✓ Created default coursier user (coursier/coursier123)');
-      } catch (e) {
-        if (e.message !== 'USER_EXISTS') console.error('Failed to create courier user:', e.message);
-      }
-
-      console.log('\n📋 Dev mode credentials:');
-      console.log('  Admin:     admin / admin123');
-      console.log('  Manager:   manager / manager123');
-      console.log('  Pharmacien: pharmacien / pharmacien123');
-      console.log('  Coursier:  coursier / coursier123\n');
+      console.warn('❌ No DATABASE_URL set - Production mode requires a configured database');
+      console.warn('Please set DATABASE_URL environment variable on Render');
     }
 
     server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      if (!process.env.DATABASE_URL) {
+        console.warn('\n⚠️  WARNING: Running without DATABASE_URL');
+        console.warn('Database features will not be available.');
+        console.warn('To enable database features, please set DATABASE_URL environment variable.\n');
+      }
     });
   } catch (err) {
     console.error('Failed to start server:', err && err.message);

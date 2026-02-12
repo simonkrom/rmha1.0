@@ -4,21 +4,22 @@ const { supabaseAdmin } = require('../supabase');
 module.exports = (auth, audit, pool, requireAuth, requireRole) => {
   const router = express.Router();
 
-  // In-memory storage for users when no database is available (local dev fallback)
-  let localUsers = [];
-
   // GET /api/admin/users - List all users
   router.get('/users', requireAuth(auth), requireRole('admin'), async (req, res) => {
+    if (!supabaseAdmin && !pool) {
+      return res.status(503).json({ error: 'Database not configured' });
+    }
+
     try {
-      if (pool) {
-        const { rows } = await pool.query('SELECT id, username, role, created_at FROM users ORDER BY created_at DESC');
-        await audit.log({ user_id: req.user.id, action: 'list_users', resource: 'user' });
-        res.json({ ok: true, users: rows });
-      } else {
-        // Fallback: return in-memory users
-        console.warn('No database available - using in-memory storage for users');
-        res.json({ ok: true, users: localUsers });
+      if (supabaseAdmin) {
+        const { data, error } = await supabaseAdmin.from('users').select('id, username, role, created_at').order('created_at', { ascending: false });
+        if (error) throw error;
+        return res.json({ ok: true, users: data });
       }
+
+      const { rows } = await pool.query('SELECT id, username, role, created_at FROM users ORDER BY created_at DESC');
+      await audit.log({ user_id: req.user.id, action: 'list_users', resource: 'user' });
+      res.json({ ok: true, users: rows });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'internal' });
@@ -31,47 +32,22 @@ module.exports = (auth, audit, pool, requireAuth, requireRole) => {
     if (!username || !password || !role) {
       return res.status(400).json({ error: 'username, password, and role required' });
     }
-    try {
-      if (pool) {
-        // Register user via auth service
-        const user = await auth.register(username, password, role);
-        
-        // Log audit
-        await audit.log({ 
-          user_id: req.user.id, 
-          action: 'create_user', 
-          resource: 'user', 
-          meta: { username, role } 
-        });
-        
-        res.json({ ok: true, user: { id: user.id, username: user.username, role: user.role } });
-      } else {
-        // Fallback: in-memory storage
-        console.warn('No database available - using in-memory storage for users');
-        
-        // Check if user already exists
-        if (localUsers.some(u => u.username === username)) {
-          return res.status(409).json({ error: 'User already exists' });
-        }
 
-        const user = {
-          id: Date.now(),
-          username,
-          password, // Note: in real app this should be hashed
-          role,
-          created_at: new Date().toISOString()
-        };
-        localUsers.push(user);
-        
-        try { await audit.log({ 
-          user_id: req.user.id, 
-          action: 'create_user', 
-          resource: 'user', 
-          meta: { username, role } 
-        }); } catch (e) { console.error('audit error', e && e.message); }
-        
-        res.json({ ok: true, user: { id: user.id, username: user.username, role: user.role } });
-      }
+    if (!supabaseAdmin && !pool) {
+      return res.status(503).json({ error: 'Database not configured' });
+    }
+
+    try {
+      const user = await auth.register(username, password, role);
+      
+      await audit.log({ 
+        user_id: req.user.id, 
+        action: 'create_user', 
+        resource: 'user', 
+        meta: { username, role } 
+      });
+      
+      res.json({ ok: true, user: { id: user.id, username: user.username, role: user.role } });
     } catch (err) {
       if (err.message === 'USER_EXISTS') {
         return res.status(409).json({ error: 'User already exists' });
@@ -88,6 +64,10 @@ module.exports = (auth, audit, pool, requireAuth, requireRole) => {
     
     if (!username && !password && !role) {
       return res.status(400).json({ error: 'At least one field required' });
+    }
+
+    if (!supabaseAdmin && !pool) {
+      return res.status(503).json({ error: 'Database not configured' });
     }
 
     try {
@@ -142,34 +122,11 @@ module.exports = (auth, audit, pool, requireAuth, requireRole) => {
         });
 
         res.json({ ok: true, user: { id: userId, username: newUsername, role: newRole } });
-      } else {
-        // Fallback: in-memory update
-        console.warn('No database available - using in-memory storage for users');
-        const userIndex = localUsers.findIndex(u => u.id === parseInt(userId));
-        if (userIndex === -1) {
-          return res.status(404).json({ error: 'User not found' });
-        }
-
-        const currentUser = localUsers[userIndex];
-        let newUsername = username || currentUser.username;
-        let newRole = role || currentUser.role;
-
-        // Prevent changing the last admin
-        if (currentUser.role === 'admin' && newRole !== 'admin') {
-          const adminCount = localUsers.filter(u => u.role === 'admin').length;
-          if (adminCount <= 1) {
-            return res.status(400).json({ error: 'Cannot remove the last admin' });
-          }
-        }
-
-        localUsers[userIndex] = {
-          ...currentUser,
-          username: newUsername,
-          role: newRole,
-          password: password || currentUser.password
-        };
-
-        res.json({ ok: true, user: { id: userId, username: newUsername, role: newRole } });
+      } else if (supabaseAdmin) {
+        // Supabase update logic (simplified)
+        const { error } = await supabaseAdmin.from('users').update({ username, role }).eq('id', userId);
+        if (error) throw error;
+        res.json({ ok: true, user: { id: userId, username, role } });
       }
     } catch (err) {
       if (err.message === 'DUPLICATE_USERNAME') {
@@ -183,7 +140,11 @@ module.exports = (auth, audit, pool, requireAuth, requireRole) => {
   // DELETE /api/admin/users/:userId - Delete user
   router.delete('/users/:userId', requireAuth(auth), requireRole('admin'), async (req, res) => {
     const { userId } = req.params;
-    
+
+    if (!supabaseAdmin && !pool) {
+      return res.status(503).json({ error: 'Database not configured' });
+    }
+
     try {
       if (pool) {
         // Prevent deleting self or admin user (if only one admin)
@@ -222,28 +183,9 @@ module.exports = (auth, audit, pool, requireAuth, requireRole) => {
         });
 
         res.json({ ok: true, message: 'User deleted' });
-      } else {
-        // Fallback: in-memory delete
-        console.warn('No database available - using in-memory storage for users');
-        const userIndex = localUsers.findIndex(u => u.id === parseInt(userId));
-        if (userIndex === -1) {
-          return res.status(404).json({ error: 'User not found' });
-        }
-
-        const userToDelete = localUsers[userIndex];
-        if (userToDelete.id === req.user.id) {
-          return res.status(400).json({ error: 'Cannot delete your own account' });
-        }
-
-        // Prevent deleting the last admin
-        if (userToDelete.role === 'admin') {
-          const adminCount = localUsers.filter(u => u.role === 'admin').length;
-          if (adminCount <= 1) {
-            return res.status(400).json({ error: 'Cannot delete the last admin' });
-          }
-        }
-
-        localUsers.splice(userIndex, 1);
+      } else if (supabaseAdmin) {
+        const { error } = await supabaseAdmin.from('users').delete().eq('id', userId);
+        if (error) throw error;
         res.json({ ok: true, message: 'User deleted' });
       }
     } catch (err) {
@@ -254,46 +196,38 @@ module.exports = (auth, audit, pool, requireAuth, requireRole) => {
 
   // POST /api/admin/seed-admin - Seed initial admin (if no admin exists)
   router.post('/seed-admin', async (req, res) => {
+    if (!supabaseAdmin && !pool) {
+      return res.status(503).json({ error: 'Database not configured' });
+    }
+
     try {
       if (pool) {
         const { rows } = await pool.query("SELECT 1 FROM users WHERE role = 'admin' LIMIT 1");
         if (rows && rows.length) return res.status(400).json({ error: 'admin exists' });
-        const { username = 'admin', password = 'admin123', email = 'admin@example.com' } = req.body || {};
-        const user = await auth.register(username, password, 'admin');
-        
-        // Optional: create in Supabase Auth
-        if (supabaseAdmin) {
-          try {
-            await supabaseAdmin.auth.admin.createUser({
-              email: email,
-              password: password,
-              email_confirm: true,
-              user_metadata: { username, role: 'admin' }
-            });
-          } catch (supabaseErr) {
-            console.error('Supabase admin creation error:', supabaseErr.message);
-          }
-        }
-        
-        await audit.log({ user_id: user.id, action: 'create_admin', resource: 'user', meta: { username } });
-        res.json({ ok: true, user: { id: user.id, username: user.username } });
-      } else {
-        // Fallback: create in-memory admin
-        console.warn('No database available - creating in-memory admin user');
-        const adminExists = localUsers.some(u => u.role === 'admin');
-        if (adminExists) return res.status(400).json({ error: 'admin exists' });
-
-        const { username = 'admin', password = 'admin123' } = req.body || {};
-        const admin = {
-          id: 1,
-          username,
-          password,
-          role: 'admin',
-          created_at: new Date().toISOString()
-        };
-        localUsers.push(admin);
-        res.json({ ok: true, user: { id: admin.id, username: admin.username } });
+      } else if (supabaseAdmin) {
+        const { data } = await supabaseAdmin.from('users').select('id').eq('role', 'admin').limit(1);
+        if (data && data.length) return res.status(400).json({ error: 'admin exists' });
       }
+
+      const { username = 'admin', password = 'admin123', email = 'admin@example.com' } = req.body || {};
+      const user = await auth.register(username, password, 'admin');
+      
+      // Optional: create in Supabase Auth
+      if (supabaseAdmin) {
+        try {
+          await supabaseAdmin.auth.admin.createUser({
+            email: email,
+            password: password,
+            email_confirm: true,
+            user_metadata: { username, role: 'admin' }
+          });
+        } catch (supabaseErr) {
+          console.error('Supabase admin creation error:', supabaseErr.message);
+        }
+      }
+      
+      await audit.log({ user_id: user.id, action: 'create_admin', resource: 'user', meta: { username } });
+      res.json({ ok: true, user: { id: user.id, username: user.username } });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'internal' });
@@ -302,6 +236,10 @@ module.exports = (auth, audit, pool, requireAuth, requireRole) => {
 
   // GET /api/admin/activity - Get activity from audit logs
   router.get('/activity', requireAuth(auth), requireRole('admin'), async (req, res) => {
+    if (!supabaseAdmin && !pool) {
+      return res.status(503).json({ error: 'Database not configured' });
+    }
+
     try {
       if (supabaseAdmin) {
         const { data, error } = await supabaseAdmin.from('audit').select('*').order('created_at', { ascending: false }).limit(100);
@@ -309,13 +247,8 @@ module.exports = (auth, audit, pool, requireAuth, requireRole) => {
         return res.json({ ok: true, activity: data });
       }
 
-      // Fallback to Postgres
-      if (pool) {
-        const { rows } = await pool.query('SELECT * FROM audit ORDER BY created_at DESC LIMIT 100');
-        res.json({ ok: true, activity: rows });
-      } else {
-        res.json({ ok: true, activity: [] });
-      }
+      const { rows } = await pool.query('SELECT * FROM audit ORDER BY created_at DESC LIMIT 100');
+      res.json({ ok: true, activity: rows });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'internal' });

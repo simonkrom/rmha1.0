@@ -12,7 +12,7 @@ module.exports = (auth, audit, pool, requireAuth) => {
     try {
       const user = await auth.register(username, password, role);
       
-      // Optionnel : ajouter l'utilisateur dans Supabase Auth
+      // Optional: add user to Supabase Auth
       if (email && supabaseAdmin) {
         try {
           await supabaseAdmin.auth.admin.createUser({
@@ -26,10 +26,11 @@ module.exports = (auth, audit, pool, requireAuth) => {
         }
       }
       
-      await audit.log({ user_id: user.id, action: 'register', resource: 'user', meta: { username } });
+      try { await audit.log({ user_id: user.id, action: 'register', resource: 'user', meta: { username } }); } catch (e) { console.error('audit error', e && e.message); }
       res.json({ ok: true, user: { id: user.id, username: user.username, role: user.role } });
     } catch (err) {
       if (err.message === 'USER_EXISTS') return res.status(409).json({ error: 'User exists' });
+      if (err.message === 'Database not configured') return res.status(503).json({ error: 'Database not configured' });
       console.error(err);
       res.status(500).json({ error: 'internal' });
     }
@@ -40,10 +41,11 @@ module.exports = (auth, audit, pool, requireAuth) => {
     if (!username || !password) return res.status(400).json({ error: 'username and password required' });
     try {
       const { token, user } = await auth.login(username, password);
-      await audit.log({ user_id: user.id, action: 'login', resource: 'auth', meta: { username } });
+      try { await audit.log({ user_id: user.id, action: 'login', resource: 'auth', meta: { username } }); } catch (e) { console.error('audit error', e && e.message); }
       res.json({ ok: true, token, user });
     } catch (err) {
       if (err.message === 'INVALID_CREDENTIALS') return res.status(401).json({ error: 'Invalid credentials' });
+      if (err.message === 'Database not configured') return res.status(503).json({ error: 'Database not configured' });
       console.error(err);
       res.status(500).json({ error: 'internal' });
     }
@@ -51,16 +53,14 @@ module.exports = (auth, audit, pool, requireAuth) => {
 
   router.get('/profile', requireAuth(auth), async (req, res) => {
     try {
-      if (pool) {
-        const { rows } = await pool.query('SELECT id, username, role, created_at FROM users WHERE id = $1', [req.user.id]);
-        const userRow = rows && rows[0];
-        try { await audit.log({ user_id: req.user.id, action: 'read_profile', resource: 'user', meta: { id: req.user.id } }); } catch (e) { console.error('audit error', e && e.message); }
-        res.json({ ok: true, user: userRow });
-      } else {
-        // Fallback: return user from JWT token (since we don't have access to local users storage here)
-        try { await audit.log({ user_id: req.user.id, action: 'read_profile', resource: 'user', meta: { id: req.user.id } }); } catch (e) { console.error('audit error', e && e.message); }
-        res.json({ ok: true, user: { id: req.user.id, role: req.user.role } });
+      if (!pool) {
+        return res.status(503).json({ error: 'Database not configured' });
       }
+
+      const { rows } = await pool.query('SELECT id, username, role, created_at FROM users WHERE id = $1', [req.user.id]);
+      const userRow = rows && rows[0];
+      try { await audit.log({ user_id: req.user.id, action: 'read_profile', resource: 'user', meta: { id: req.user.id } }); } catch (e) { console.error('audit error', e && e.message); }
+      res.json({ ok: true, user: userRow });
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'internal' });
@@ -69,3 +69,4 @@ module.exports = (auth, audit, pool, requireAuth) => {
 
   return router;
 };
+
