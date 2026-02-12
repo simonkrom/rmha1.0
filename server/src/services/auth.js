@@ -33,7 +33,11 @@ function createAuth(pool, jwtSecret) {
     }
   }
 
-  return { register, login, verifyToken };
+  async function hashPassword(password) {
+    return await bcrypt.hash(password, SALT_ROUNDS);
+  }
+
+  return { register, login, verifyToken, hashPassword };
 }
 
 module.exports = { createAuth };

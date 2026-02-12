@@ -85,9 +85,38 @@
   <script>
     authRequireRole('admin', {});
 
+    // Config API URL
+    const API_BASE_URL = window.location.hostname === 'localhost' 
+      ? 'http://localhost:4000/api' 
+      : 'https://laboratoire-backend.onrender.com/api';
+
+    // Get JWT token
+    const getToken = () => sessionStorage.getItem('token');
+
     // Pagination/search state
     let currentPage = 1;
     const itemsPerPage = 8;
+    let allUsers = [];
+
+    // Load users from API
+    async function loadUsers() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch users');
+        const data = await response.json();
+        allUsers = data.users || [];
+        refresh();
+      } catch (err) {
+        console.error('Error loading users:', err);
+        showToast('Erreur chargement utilisateurs', 'error');
+        allUsers = [];
+      }
+    }
 
     function renderPagination(total){
       const pages = Math.max(1, Math.ceil(total / itemsPerPage));
@@ -103,9 +132,8 @@
     }
 
     function refresh(){
-      const users = Object.values(getUsers());
       const query = (document.getElementById('searchInput').value || '').toLowerCase();
-      const filtered = users.filter(u => u.username.toLowerCase().includes(query) || (u.role||'').toLowerCase().includes(query));
+      const filtered = allUsers.filter(u => u.username.toLowerCase().includes(query) || (u.role||'').toLowerCase().includes(query));
       const total = filtered.length;
       document.getElementById('totalCount').textContent = total;
       // pagination
@@ -115,18 +143,31 @@
       tbody.innerHTML = '';
       pageItems.forEach(u => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${u.username}</td><td>${u.role}</td><td class="controls"><button data-user="${u.username}" class="edit">Modifier</button><button data-user="${u.username}" class="del danger">Supprimer</button></td>`;
+        tr.innerHTML = `<td>${u.username}</td><td>${u.role}</td><td class="controls"><button data-userId="${u.id}" class="edit">Modifier</button><button data-userId="${u.id}" class="del danger">Supprimer</button></td>`;
         tbody.appendChild(tr);
       });
       // attach handlers
-      document.querySelectorAll('.del').forEach(b=> b.addEventListener('click', function(){ if(b.dataset.user === 'admin'){ return showToast('Impossible de supprimer l administrateur par défaut', 'error'); } if(confirm('Supprimer cet utilisateur ?')){ deleteUser(this.dataset.user, sessionStorage.getItem('username')); refresh(); refreshAudits(); }}));
-      document.querySelectorAll('.edit').forEach(b=> b.addEventListener('click', function(){ openUserModal('edit', this.dataset.user); }));
+      document.querySelectorAll('.del').forEach(b=> b.addEventListener('click', async function(){ 
+        const userId = this.dataset.userId; 
+        const user = allUsers.find(u => u.id === parseInt(userId));
+        if(!user) return;
+        if(user.role === 'admin'){ return showToast('Impossible de supprimer un administrateur', 'error'); } 
+        if(confirm('Supprimer cet utilisateur ?')){ 
+          await deleteUserAPI(userId); 
+          refreshAudits(); 
+        }
+      }));
+      document.querySelectorAll('.edit').forEach(b=> b.addEventListener('click', function(){ 
+        const userId = this.dataset.userId;
+        const user = allUsers.find(u => u.id === parseInt(userId));
+        if(user) openUserModal('edit', user); 
+      }));
 
       renderPagination(total);
     }
 
     // Modal handlers
-    function openUserModal(mode, username){
+    function openUserModal(mode, user){
       const modal = document.getElementById('userModal');
       const title = document.getElementById('modalTitle');
       const overlay = document.getElementById('userModalOverlay');
@@ -135,9 +176,21 @@
       const role = document.getElementById('modalRole');
       modal.style.display = 'flex';
       if(mode === 'add'){
-        title.textContent = 'Ajouter un utilisateur'; uname.value=''; pwd.value=''; role.value='manager'; uname.dataset.original = '';
+        title.textContent = 'Ajouter un utilisateur'; 
+        uname.value=''; 
+        pwd.value=''; 
+        role.value='manager'; 
+        modal.dataset.mode = 'add';
+        modal.dataset.userId = '';
       } else {
-        title.textContent = 'Modifier utilisateur'; const users = getUsers(); const u = users[username]; if(u){ uname.value = u.username; pwd.value=''; role.value = u.role; uname.dataset.original = u.username; }
+        title.textContent = 'Modifier utilisateur'; 
+        if(user){ 
+          uname.value = user.username; 
+          pwd.value=''; 
+          role.value = user.role; 
+          modal.dataset.mode = 'edit';
+          modal.dataset.userId = user.id;
+        }
       }
       overlay.onclick = closeModal;
     }
@@ -148,43 +201,122 @@
 
     document.getElementById('modalCancel').addEventListener('click', closeModal);
 
-    document.getElementById('modalSave').addEventListener('click', function(){
+    document.getElementById('modalSave').addEventListener('click', async function(){
       const uname = document.getElementById('modalUsername');
       const pwd = document.getElementById('modalPassword');
       const role = document.getElementById('modalRole');
-      const original = uname.dataset.original || '';
-      const actor = sessionStorage.getItem('username') || 'admin';
+      const mode = document.getElementById('userModal').dataset.mode;
+      const userId = document.getElementById('userModal').dataset.userId;
+      
       if(!uname.value.trim()) return showToast('Nom d utilisateur requis', 'error');
-      if(!original){
+      
+      if(mode === 'add'){
         if(!pwd.value) return showToast('Mot de passe requis pour nouvel utilisateur', 'error');
-        const ok = addUser(uname.value.trim(), pwd.value, role.value, actor);
-        if(!ok) return showToast('Utilisateur existe déjà', 'error');
-        closeModal(); refresh(); refreshAudits();
+        await addUserAPI(uname.value.trim(), pwd.value, role.value);
       } else {
-        const data = { username: uname.value.trim(), role: role.value };
-        if(pwd.value) data.password = pwd.value;
-        const ok = updateUser(original, data, actor);
-        if(!ok) return showToast('Erreur mise à jour', 'error');
-        closeModal(); refresh(); refreshAudits();
+        if(!userId) return showToast('Erreur: ID utilisateur manquant', 'error');
+        await updateUserAPI(userId, uname.value.trim(), pwd.value || null, role.value);
       }
+      closeModal(); 
+      await loadUsers();
+      await refreshAudits();
     });
 
     // Search
     document.getElementById('searchInput').addEventListener('input', function(){ currentPage = 1; refresh(); });
 
     // Audits
-    function refreshAudits(){
-      const logs = getAudits();
-      const tbody = document.querySelector('#auditTable tbody');
-      tbody.innerHTML = '';
-      logs.slice(0,50).forEach(l=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${l.action}</td><td>${l.userAffected || ''}</td><td>${l.byUser || ''}</td><td>${new Date(l.timestamp).toLocaleString()}</td>`;
-        tbody.appendChild(tr);
-      });
+    async function refreshAudits(){
+      try {
+        const response = await fetch(`${API_BASE_URL}/admin/activity`, {
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) throw new Error('Failed to fetch audits');
+        const data = await response.json();
+        const logs = data.activity || [];
+        const tbody = document.querySelector('#auditTable tbody');
+        tbody.innerHTML = '';
+        logs.slice(0,50).forEach(l=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${l.action || ''}</td><td>${l.meta?.username || l.meta?.userId || ''}</td><td>${l.user_id || ''}</td><td>${new Date(l.created_at).toLocaleString()}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Error loading audits:', err);
+      }
     }
 
     document.getElementById('clearAudit').addEventListener('click', function(){ if(confirm('Effacer le journal d audit ?')){ clearAudits(); refreshAudits(); }});
+
+    // API Functions for user management
+    async function addUserAPI(username, password, role) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password, role })
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create user');
+        }
+        showToast(`Utilisateur ${username} créé avec succès`, 'success');
+      } catch (err) {
+        console.error('Error adding user:', err);
+        showToast(`Erreur: ${err.message}`, 'error');
+      }
+    }
+
+    async function updateUserAPI(userId, username, password, role) {
+      try {
+        const body = { username, role };
+        if (password) body.password = password;
+        
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to update user');
+        }
+        showToast(`Utilisateur ${username} modifié avec succès`, 'success');
+      } catch (err) {
+        console.error('Error updating user:', err);
+        showToast(`Erreur: ${err.message}`, 'error');
+      }
+    }
+
+    async function deleteUserAPI(userId) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to delete user');
+        }
+        showToast('Utilisateur supprimé avec succès', 'success');
+        await loadUsers();
+      } catch (err) {
+        console.error('Error deleting user:', err);
+        showToast(`Erreur: ${err.message}`, 'error');
+      }
+    }
 
     // Socket.IO activity stream
     try {
@@ -254,7 +386,7 @@
 
     } catch (e) { console.warn('Socket.IO not available (admin):', e && e.message); }
 
-    document.addEventListener('DOMContentLoaded', function(){ refresh(); refreshAudits(); });
+    document.addEventListener('DOMContentLoaded', function(){ loadUsers(); refreshAudits(); });
   </script>
 
 
